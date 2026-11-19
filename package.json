@@ -28,6 +28,8 @@
     "publish": [
       {
         "provider": "github",
+        "owner": "past-past",
+        "repo": "GearBox_Pro_V5.0",
         "releaseType": "release"
       }
     ],
