@@ -18,11 +18,14 @@ const { execFile } = require('child_process');
 
 const ALLOWED_SW_SCOPES = new Set([
   'all',
+  'full_closed',
+  'housing',
+  'cast_cover',
+  'welded_cover',
+  'shafts_gears',
   'housing_no_cover',
   'housing_both',
-  'housing',
-  'upper_cover',
-  'shafts_gears'
+  'upper_cover'
 ]);
 
 const MAX_SCRIPT_BYTES = 2 * 1024 * 1024; // 2 MB cap

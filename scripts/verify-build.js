@@ -102,6 +102,15 @@ try {
     scope: 'all',
     scriptContent: safeVbs
   });
+  for (const scope of ['all', 'full_closed', 'housing', 'cast_cover', 'welded_cover', 'shafts_gears']) {
+    const result = validateSolidWorksRequest({
+      command: 'SW_BUILD_GEARBOX',
+      codeName: 'ZLY224',
+      scope,
+      scriptContent: safeVbs
+    });
+    assert.strictEqual(result.scope, scope, `SolidWorks 建模范围 ${scope} 应允许通过`);
+  }
 
   assert.throws(() => {
     validateSolidWorksRequest({
