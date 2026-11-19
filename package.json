@@ -59,10 +59,10 @@
           "target": "portable",
           "arch": ["x64"]
         }
-      ],
-      "artifactName": "GearBoxPro-V${version}-Windows-${arch}-${target}.${ext}"
+      ]
     },
     "nsis": {
+      "artifactName": "GearBoxPro-V${version}-Windows-${arch}-nsis.${ext}",
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
@@ -73,6 +73,9 @@
       "uninstallerIcon": "build/icon.ico",
       "installerHeaderIcon": "build/icon.ico",
       "language": "2052"
+    },
+    "portable": {
+      "artifactName": "GearBoxPro-V${version}-Windows-${arch}-portable.${ext}"
     }
   }
 }
