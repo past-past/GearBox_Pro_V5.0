@@ -1,0 +1,13 @@
+/* 纯本地工程字体栈（零 Google Fonts 外链，离线 Windows 环境完整显示） */
+:root {
+  --gb-font-sans: "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+  --gb-font-mono: "Cascadia Mono", "Consolas", "JetBrains Mono", "Courier New", monospace;
+}
+
+body {
+  font-family: var(--gb-font-sans) !important;
+}
+
+.mono, code, pre, kbd {
+  font-family: var(--gb-font-mono) !important;
+}

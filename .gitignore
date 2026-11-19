@@ -1,0 +1,23 @@
+# Dependencies & build outputs
+node_modules/
+dist/
+out/
+
+# Generated local vendor bundles (auto-built by scripts/prepare-assets.js)
+src/renderer/vendor/three.min.js
+src/renderer/vendor/tailwind.css
+
+# CRITICAL SECURITY: Never commit license private keys, server secrets, or audit logs!
+license-server/keys/private.pem
+license-server/keys/*.key
+license-server/.env
+license-server/issued-audit.jsonl
+*.gbplic
+*.lic
+
+# OS / IDE clutter
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/

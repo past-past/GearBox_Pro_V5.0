@@ -1,0 +1,79 @@
+name: Build & Release Windows Desktop App (V5.0)
+
+on:
+  push:
+    tags:
+      - 'V5.0'
+      - 'V*'
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows x64 Installer & Portable
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Bundle local frontend assets (Three.js + Tailwind CSS)
+        run: npm run prepare-assets
+
+      - name: Run offline license & CAD security verification tests
+        run: npm run verify
+
+      - name: Build Windows Installer (NSIS + latest.yml) & Portable EXE
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          npx electron-builder --win --x64 --publish never
+          -c.publish.provider=github
+          -c.publish.owner=${{ github.repository_owner }}
+          -c.publish.repo=${{ github.event.repository.name }}
+
+      - name: Generate SHA256 Checksums
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path dist -Include *.exe,*.zip -Recurse | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash
+            "$hash  $($_.Name)"
+          } | Out-File -FilePath dist/SHA256SUMS.txt -Encoding utf8
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: GearBox-Pro-Windows-x64-${{ github.ref_name }}
+          path: |
+            dist/*.exe
+            dist/latest.yml
+            dist/*.blockmap
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Publish GitHub Release (on Tag push)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: GearBox Pro减速机参数化设计及建模系统 ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            dist/*.exe
+            dist/latest.yml
+            dist/*.blockmap
+            dist/SHA256SUMS.txt

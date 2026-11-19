@@ -1,0 +1,14 @@
+{
+  "name": "gearbox-pro-license-server",
+  "version": "5.0.0",
+  "private": true,
+  "description": "GearBox Pro V5.0 服务端离线授权签发工具与管理控制台（零外部依赖）",
+  "scripts": {
+    "keygen": "node keygen.js",
+    "issue": "node issue-cli.js",
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
