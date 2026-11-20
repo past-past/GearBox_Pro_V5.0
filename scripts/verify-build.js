@@ -112,6 +112,13 @@ try {
     assert.strictEqual(result.scope, scope, `SolidWorks 建模范围 ${scope} 应允许通过`);
   }
 
+  const rendererSource = fs.readFileSync(path.join(rootDir, 'src', 'renderer', 'index.html'), 'utf8');
+  const swEntryPattern = /^[ \t]*Set swApp = Application\.SldWorks[ \t]*\r?\n[ \t]*If swApp Is Nothing Then Exit Sub/m;
+  assert(rendererSource.includes(swEntryPattern.source), 'VBScript 启动器必须匹配带缩进的 SolidWorks VBA 入口');
+  const convertedEntry = '    Set swApp = Application.SldWorks\r\n    If swApp Is Nothing Then Exit Sub'
+    .replace(swEntryPattern, '    Set swApp = GetObject(, "SldWorks.Application")');
+  assert(!convertedEntry.includes('Application.SldWorks'), 'VBScript 不应保留 VBA 专用 Application.SldWorks 入口');
+
   assert.throws(() => {
     validateSolidWorksRequest({
       command: 'SW_BUILD_GEARBOX',

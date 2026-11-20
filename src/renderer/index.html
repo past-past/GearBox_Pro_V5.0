@@ -13932,7 +13932,7 @@ End Sub`;
         .replace(/\bvbInformation\b/g, '64')
         .replace(/\bvbExclamation\b/g, '48')
         .replace(
-          'Set swApp = Application.SldWorks\n    If swApp Is Nothing Then Exit Sub',
+          /^[ \t]*Set swApp = Application\.SldWorks[ \t]*\r?\n[ \t]*If swApp Is Nothing Then Exit Sub/m,
           [
             'On Error Resume Next',
             '    Set swApp = GetObject(, "SldWorks.Application")',
