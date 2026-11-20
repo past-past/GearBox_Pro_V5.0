@@ -631,29 +631,14 @@
 
   <!-- Top Navigation & Status Bar -->
   <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-30">
-    <div class="max-w-[1600px] mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded bg-sky-600 flex items-center justify-center btn-solid-primary">
-          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-          </svg>
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-sm font-bold tracking-tight text-white">GearBox Pro减速机参数化设计及建模系统 V5.0</h1>
-            <span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 mono">GB/T · ISO 6336</span>
-          </div>
-        </div>
+    <div class="max-w-[1600px] mx-auto px-4 py-1.5 flex flex-wrap items-center justify-start gap-2">
+      <div id="headerModelBadge" class="hidden">
+        <span id="badgeCodeName">ZLY-200-12.5</span>
+        <span id="badgeOutTorque">T_out: 1176 N·m</span>
       </div>
 
-      <!-- Quick Model Status Pill & Export Actions -->
+      <!-- Export Actions -->
       <div class="flex flex-wrap items-center gap-2">
-        <div id="headerModelBadge" class="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded bg-slate-800/90 border border-slate-700 text-xs">
-          <span id="badgeCodeName" class="font-semibold text-sky-300 mono">ZLY-200-12.5</span>
-          <span class="text-slate-500">|</span>
-          <span id="badgeOutTorque" class="text-slate-300 mono">T_out: 1176 N·m</span>
-        </div>
 
         <button id="btnOpenProjectTop" type="button" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition" title="打开已保存的减速机参数工程文件 (.gbpro)">
           打开参数
@@ -1581,8 +1566,8 @@
                 <div class="flex items-center gap-2 text-xs">
                   <label for="selectCalcStandard" class="text-slate-400 font-medium">计算标准</label>
                   <select id="selectCalcStandard" class="px-2.5 py-1 rounded bg-slate-900 border border-teal-500/50 text-xs text-teal-300 font-semibold focus:outline-none">
-                    <option value="ISO" selected>国际标准 (ISO 6336 / ISO 23509 / DIN 3992)</option>
-                    <option value="GB">国家标准 (GB/T 3480 / GB/T 10062 / GB/T 1356)</option>
+                    <option value="GB" selected>国家标准 (GB/T 3480 / GB/T 10062 / GB/T 1356)</option>
+                    <option value="ISO">国际标准 (ISO 6336 / ISO 23509 / DIN 3992)</option>
                   </select>
                 </div>
                 <div class="flex items-center gap-2 text-xs">
@@ -4029,7 +4014,7 @@
           a_actual: g.a_or_Re,
           priorityMode: g.priorityMode || state.gearCalcPriorityMode || 'lock_a_solve_x',
           shiftSizingRule: state.shiftSizingRule || 'equal_sliding',
-          calcStandard: state.calcStandard || 'ISO',
+          calcStandard: state.calcStandard || 'GB',
           customXn1: g.xn1,
           customXn2: g.xn2
         });
@@ -4486,6 +4471,46 @@
       return lookupKeywayFull(d).spec;
     }
 
+    // GB/T 1096-2003 standard flat-key preferred lengths.
+    const STD_GB1096_KEY_LENGTHS = [
+      12, 14, 16, 18, 20, 22, 25, 28, 32, 36, 40, 45, 50, 56, 63, 70, 80, 90,
+      100, 110, 125, 140, 160, 180, 200, 220, 250, 280, 320, 360, 400
+    ];
+    function snapGB1096KeyLength(segLen) {
+      const targetL = Math.max(12, segLen - Math.max(6, Math.round(segLen * 0.14)));
+      let best = STD_GB1096_KEY_LENGTHS[0];
+      for (let i = 0; i < STD_GB1096_KEY_LENGTHS.length; i++) {
+        if (STD_GB1096_KEY_LENGTHS[i] <= targetL) best = STD_GB1096_KEY_LENGTHS[i];
+        else break;
+      }
+      return best;
+    }
+
+    // GB/T 13871.1-2007 / GB/T 9877-2008 standard skeleton oil-seal sizes (d x D x B, mm).
+    const STD_GB13871_OIL_SEALS = [
+      [12, 24, 7], [14, 26, 7], [15, 28, 7], [16, 30, 7], [17, 30, 7], [18, 32, 7],
+      [20, 35, 7], [22, 35, 7], [25, 40, 7], [28, 45, 7], [30, 47, 7], [32, 48, 8],
+      [35, 52, 8], [36, 52, 8], [38, 55, 8], [40, 58, 8], [42, 62, 8], [45, 65, 8],
+      [48, 68, 8], [50, 70, 8], [52, 72, 8], [55, 75, 8], [58, 80, 8], [60, 80, 8],
+      [62, 85, 10], [65, 85, 10], [68, 90, 10], [70, 90, 10], [72, 95, 10], [75, 95, 10],
+      [80, 100, 10], [85, 110, 12], [90, 115, 12], [95, 120, 12], [100, 125, 12],
+      [105, 130, 12], [110, 140, 12], [115, 140, 12], [120, 150, 12], [125, 150, 12],
+      [130, 160, 12], [135, 165, 12], [140, 170, 12], [145, 175, 15], [150, 180, 15],
+      [160, 190, 15], [170, 200, 15], [180, 210, 15], [190, 220, 15], [200, 230, 15],
+      [210, 240, 15], [220, 250, 15], [230, 260, 15], [240, 270, 15], [250, 280, 15],
+      [260, 300, 16], [280, 320, 16], [300, 340, 18], [320, 360, 18], [340, 380, 18],
+      [360, 400, 20], [380, 420, 20], [400, 440, 20], [420, 460, 20], [440, 480, 20],
+      [460, 500, 22], [480, 520, 22], [500, 540, 22]
+    ];
+    function lookupGBOilSeal(minShaftDia) {
+      for (let i = 0; i < STD_GB13871_OIL_SEALS.length; i++) {
+        const [d, D, B] = STD_GB13871_OIL_SEALS[i];
+        if (d >= minShaftDia) return { d, D, B };
+      }
+      const last = STD_GB13871_OIL_SEALS[STD_GB13871_OIL_SEALS.length - 1];
+      return { d: last[0], D: last[1], B: last[2] };
+    }
+
     function snapToStd(val, arr) {
       for (let i = 0; i < arr.length; i++) {
         if (arr[i] >= val) return arr[i];
@@ -4578,7 +4603,7 @@
       customHelixHands: false,
       userPinionHands: ['LH', 'RH', 'LH'],
 
-      calcStandard: 'ISO', // 'ISO' (ISO 6336 / ISO 23509 / DIN 3992) | 'GB' (GB/T 3480 / GB/T 10062 / GB/T 1356)
+      calcStandard: 'GB', // 'GB' (GB/T 3480 / GB/T 10062 / GB/T 1356) | 'ISO' (ISO 6336 / ISO 23509 / DIN 3992)
       gearCalcPriorityMode: 'lock_a_solve_x', // 'lock_a_solve_x' | 'free_a_from_z' | 'zero_shift'
       shiftSizingRule: 'equal_sliding', // 'equal_sliding' | 'equal_bending' | 'din_balanced'
       lockedAutoCenters: [null, null, null],
@@ -5018,7 +5043,7 @@
             z1, z2, isPlanetary: false, mn, alphaN_deg: 20, beta_deg: stageBeta,
             a_actual: a_std, priorityMode: state.gearCalcPriorityMode || 'lock_a_solve_x',
             shiftSizingRule: state.shiftSizingRule || 'equal_sliding',
-            calcStandard: state.calcStandard || 'ISO'
+            calcStandard: state.calcStandard || 'GB'
           });
           d1 = initCylSol.d1;
           d2 = initCylSol.d2;
@@ -5258,7 +5283,7 @@
               a_actual: a_std,
               priorityMode,
               shiftSizingRule: state.shiftSizingRule || 'equal_sliding',
-              calcStandard: state.calcStandard || 'ISO',
+              calcStandard: state.calcStandard || 'GB',
               customXn1: useAutoShift ? undefined : customXn1,
               customXn2: useAutoShift ? undefined : customXn2
             });
@@ -5750,9 +5775,10 @@
         const z_spline = Math.max(12, Math.round(d_s1_nom / m_spline) - 1);
         const splineSpec = isSplineShaft ? `EXT ${z_spline}z×${m_spline}m×30P (GB/T 3478)` : '';
 
-        // Step 4.4: Segment ② Oil-Seal & Bearing End-Cap passage shoulder d_s2 (GB/T 2822)
+        // Step 4.4: Snap the seal journal to a catalogued GB/T oil-seal bore.
+        const gbSealObj = hasExt ? lookupGBOilSeal(d_s1 + 4) : null;
         const d_s2 = hasExt
-          ? snapToStd(d_s1 + 4, STD_SHAFT_DIAMETERS)
+          ? gbSealObj.d
           : snapToStd(Math.ceil(d_k + 2), STD_SHAFT_DIAMETERS);
         const l_s2 = hasExt ? Math.max(24, Math.round(delta_boss_protrude * 0.85 + 10)) : 0;
 
@@ -5823,7 +5849,7 @@
           : (hasIntegralPinion ? '小轮一体齿轮轴(无键)+大轮平键联接' : '从动大齿轮平键联接轴')) + ' · ' + endTypeLabel;
 
         const h_collar = Math.max(5, Math.round(0.085 * d_s4));
-        const d_s5 = d_s4 + 2 * h_collar;
+        const d_s5 = snapToStd(d_s4 + 2 * h_collar, STD_SHAFT_DIAMETERS);
         const l_s5 = Math.max(10, Math.round(1.4 * h_collar));
 
         const internalSpan = (orientation === 'orthogonal' && idx === 0 && !isWormDrive)
@@ -5874,9 +5900,9 @@
           }
         }
 
-        const sealOuterD = d_s2 + (d_s2 <= 45 ? 15 : (d_s2 <= 80 ? 20 : 25));
-        const sealWidthB = d_s2 <= 45 ? 8 : (d_s2 <= 80 ? 10 : 12);
-        const oilSealSpec = hasExt ? `TC ${d_s2}×${sealOuterD}×${sealWidthB} (GB/T 13871 双唇骨架油封)` : '闷盖密封(无外伸油封)';
+        const sealOuterD = gbSealObj ? gbSealObj.D : (d_s2 + 20);
+        const sealWidthB = gbSealObj ? gbSealObj.B : 10;
+        const oilSealSpec = hasExt ? `TC ${d_s2}×${sealOuterD}×${sealWidthB} (GB/T 13871.1 骨架油封)` : '闷盖密封(无外伸油封)';
         const spacerOuterD = d_s3 + Math.max(8, Math.round((d_s4 - d_s3) * 1.15));
         const spacerLen = Math.max(10, Math.min(16, Math.round(delta_gap2 + 2)));
         const spigotDepth = Math.max(8, Math.round(L_boss_std * 0.26));
@@ -5905,9 +5931,33 @@
         sh.d_k = d_k;
         sh.d_ext = hasExt ? d_s1_nom : d_s3;
         sh.l_ext = l_s1;
+        const kwExtFull = hasExt ? lookupKeywayFull(d_s1_nom) : null;
+        const kwExtLen = hasExt ? snapGB1096KeyLength(l_s1) : 0;
+        const kwExtSpecFull = (hasExt && kwExtFull) ? `${kwExtFull.b}×${kwExtFull.h}×${kwExtLen}` : '';
+        const kwWheelFull = hasDrivenLargeWheel ? lookupKeywayFull(d_s4) : null;
+        const kwWheelLen = hasDrivenLargeWheel ? snapGB1096KeyLength(l_wheel_seat) : 0;
+        const kwWheelSpecFull = (hasDrivenLargeWheel && kwWheelFull) ? `${kwWheelFull.b}×${kwWheelFull.h}×${kwWheelLen}` : '';
+
+        let reportKeySummary = '';
+        if (isSplineShaft) {
+          reportKeySummary = hasDrivenLargeWheel ? `花键 ${splineSpec} / 轮毂键 ${kwWheelSpecFull}` : `花键 ${splineSpec}`;
+        } else if (isHollowShaft) {
+          const kwHol = lookupKeywayFull(d_hollow_bore);
+          reportKeySummary = hasDrivenLargeWheel ? `内键 ${kwHol.b}×${kwHol.h} / 轮毂键 ${kwWheelSpecFull}` : `内键 ${kwHol.b}×${kwHol.h}`;
+        } else if (hasExt && hasDrivenLargeWheel) {
+          reportKeySummary = `外伸键 ${kwExtSpecFull} / 轮毂键 ${kwWheelSpecFull}`;
+        } else if (hasExt) {
+          reportKeySummary = `外伸键 ${kwExtSpecFull}`;
+        } else if (hasDrivenLargeWheel) {
+          reportKeySummary = `轮毂键 ${kwWheelSpecFull}`;
+        } else {
+          reportKeySummary = '无键';
+        }
+
         sh.keyway = isSplineShaft ? splineSpec : (isHollowShaft ? `内键槽 ${lookupKeyway(d_hollow_bore)} (孔Φ${d_hollow_bore}H7)` : (hasExt ? lookupKeyway(d_s1_nom) : keyway_gear));
         sh.keyway_gear = keyway_gear;
         sh.keyway_raw = raw_keyway_gear;
+        sh.reportKeySummary = reportKeySummary;
         sh.hasDrivenLargeWheel = hasDrivenLargeWheel;
         sh.hasIntegralPinion = hasIntegralPinion;
         sh.brg = brg;
@@ -5980,6 +6030,7 @@
           hasDrivenLargeWheel,
           hasIntegralPinion,
           keyway_raw: raw_keyway_gear,
+          reportKeySummary,
           structureType,
           shaftType: shaftEndType,
           shaftTypeLabel: endTypeLabel,
@@ -10800,7 +10851,7 @@
                     <td>${sh.speed.toFixed(1)} r/min · ${sh.power.toFixed(2)} kW · <b>${sh.torque.toFixed(1)} N·m</b></td>
                     <td>${segStr}</td>
                     <td>2×<b>${sh.brg.code}</b> (Φ${sh.brg.d}×${sh.brg.D}×${sh.brg.B}) · ${bl ? bl.L10h : '-'} h</td>
-                    <td>键 ${stp.keyway_raw || '-'} · ${stp.l_s2 > 0 && stp.oilSeal ? stp.oilSeal.spec : '闷盖'}</td>
+                    <td>${stp.reportKeySummary || ('键 ' + (stp.keyway_raw || '-'))} · ${stp.l_s2 > 0 && stp.oilSeal ? stp.oilSeal.spec : '闷盖'}</td>
                     <td><b>${stp.sigma_ca}</b> / ${stp.sigma_allow} MPa</td>
                     <td><span class="${stp.isSafe ? 'pdf-badge-pass' : 'pdf-badge-warn'}">${stp.isSafe ? '合格' : '超限'}</span></td>
                   </tr>
@@ -11574,7 +11625,7 @@ ${xrefOffset}
         if (selStdEl && selStdEl.getAttribute('data-mode-cat') !== stageCatKey) {
           selStdEl.setAttribute('data-mode-cat', stageCatKey);
           selStdEl.innerHTML = stdOpts.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
-          selStdEl.value = state.calcStandard || 'ISO';
+          selStdEl.value = state.calcStandard || 'GB';
         }
         if (selPrioEl && selPrioEl.getAttribute('data-mode-cat') !== stageCatKey) {
           selPrioEl.setAttribute('data-mode-cat', stageCatKey);
@@ -13336,7 +13387,7 @@ Sub InsertAndAlignPartInAssy(app As Object, assy As Object, partPath As String, 
                     End If
                 End If
             End If
-        Next pIdx
+        Next
         assy.ClearSelection2 True
 
         If fixIt Then
@@ -13408,7 +13459,7 @@ Function SelectSaveOutputDirectory(fsObj As Object, saveMode As String, customBa
                     If Not wsh Is Nothing Then baseDir = wsh.SpecialFolders("Desktop")
                 End If
                 If baseDir <> "" And Left(baseDir, 2) <> "::" Then Exit Do
-                MsgBox "请展开【此电脑】选择具体的磁盘或文件夹（例如 D:\ 或 桌面），不能直接保存在虚拟根节点下。", vbExclamation, "请选择具体保存位置"
+                MsgBox "请展开【此电脑】选择具体的磁盘或文件夹（例如 D:\\ 或 桌面），不能直接保存在虚拟根节点下。", vbExclamation, "请选择具体保存位置"
             Loop
         Else
             Set wsh = CreateObject("WScript.Shell")
@@ -13933,17 +13984,17 @@ End Sub`;
         .replace(/\bvbInformation\b/g, '64')
         .replace(/\bvbExclamation\b/g, '48')
         .replace(
-          /^[ \t]*Set swApp = Application\.SldWorks[ \t]*\r?\n[ \t]*If swApp Is Nothing Then Exit Sub/m,
-          [
-            'On Error Resume Next',
-            '    Set swApp = GetObject(, "SldWorks.Application")',
-            '    If swApp Is Nothing Then Set swApp = CreateObject("SldWorks.Application")',
-            '    On Error GoTo 0',
-            '    If swApp Is Nothing Then',
-            '        MsgBox "未检测到本机运行的 SolidWorks 或无法启动 SldWorks.Application COM 服务，请先打开 SolidWorks 软件！", 48, "GearBox Studio Pro - 一键自动建模"',
-            '        Exit Sub',
-            '    End If',
-            '    swApp.Visible = True'
+          /^([ \t]*)Set\s+swApp\s*=\s*Application\.SldWorks\r?\n[ \t]*If\s+swApp\s+Is\s+Nothing\s+Then\s+Exit\s+Sub/m,
+          (_match, indent) => [
+            `${indent}On Error Resume Next`,
+            `${indent}Set swApp = GetObject(, "SldWorks.Application")`,
+            `${indent}If swApp Is Nothing Then Set swApp = CreateObject("SldWorks.Application")`,
+            `${indent}On Error GoTo 0`,
+            `${indent}If swApp Is Nothing Then`,
+            `${indent}    MsgBox "未检测到本机运行的 SolidWorks 或无法启动 SldWorks.Application COM 服务，请先打开 SolidWorks 软件！", 48, "GearBox Studio Pro - 一键自动建模"`,
+            `${indent}    Exit Sub`,
+            `${indent}End If`,
+            `${indent}swApp.Visible = True`
           ].join('\n')
         );
 
@@ -24829,7 +24880,7 @@ Call main()
       const selectCalcStandard = document.getElementById('selectCalcStandard');
       if (selectCalcStandard) {
         selectCalcStandard.addEventListener('change', (e) => {
-          state.calcStandard = e.target.value || 'ISO';
+          state.calcStandard = e.target.value || 'GB';
           updateAllUI();
           showToast(state.calcStandard === 'ISO'
             ? '已切换为：国际标准体系 (ISO 6336 / ISO 23509 / ISO 10300 / DIN 3992)'
@@ -25076,7 +25127,7 @@ Call main()
           a_actual: g.a_or_Re,
           priorityMode: g.priorityMode || state.gearCalcPriorityMode || 'lock_a_solve_x',
           shiftSizingRule: state.shiftSizingRule || 'equal_sliding',
-          calcStandard: state.calcStandard || 'ISO'
+          calcStandard: state.calcStandard || 'GB'
         });
 
         document.getElementById('outKsCylSlide1').value = cylSol.xn1_slide.toFixed(4);
@@ -25938,7 +25989,7 @@ Call main()
           setVal('inputKA', Number(state.ka || 1.25).toFixed(2));
           setVal('inputMaterial', state.material);
           setVal('inputHelixAngle', state.beta);
-          setVal('selectHousingMaterial', state.housingMaterial);
+          setVal('inputHousingMaterial', state.housingMaterial);
           setVal('selectPlanetCount', state.planetCount);
           setVal('selectGearLayout', state.gearLayout);
           setVal('selectInputShaftType', state.inputShaftType);
@@ -25973,7 +26024,7 @@ Call main()
     <div class="gb-desktop-modal-card p-6 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
         <div>
-          <h2 id="gbHelpModalTitle" class="text-base font-bold">GearBox Pro 使用流程与帮助文档 (V5.0)</h2>
+          <h2 id="gbHelpModalTitle" class="text-base font-bold">GearBox Pro 使用流程与帮助文档 (V5.0.6)</h2>
           <p class="text-xs text-slate-500 mt-0.5">减速机参数化设计、工程保存与 SolidWorks / AutoCAD Mechanical 自动建模指南</p>
         </div>
         <button id="btnCloseHelpModal" type="button" class="px-2.5 py-1 rounded border border-slate-300 text-xs font-medium hover:bg-slate-100">关闭</button>
@@ -25997,8 +26048,8 @@ Call main()
           2) <strong>AutoCAD Mechanical 2D</strong>：确保已启动 AutoCAD Mechanical 并安装 Python（含 pywinauto、pywin32），在 2D 零件图页签点击「一键调用 CAD 轴生成器绘图」即可自动绘制 GB 标准零件图。</p>
         </div>
         <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
-          <div class="font-bold text-sky-700 mb-1">第五步：常用视图与快捷键</div>
-          <p>菜单栏「视图」支持重新加载页面 (Ctrl+R)、放大 (Ctrl+=)、缩小 (Ctrl+-)、重置缩放 (Ctrl+0)、全屏切换 (F11) 以及浅色/深色工程界面切换。</p>
+          <div class="font-bold text-sky-700 mb-1">第五步：常用视图、快捷键与在线更新</div>
+          <p>菜单栏「视图」支持重新加载页面 (Ctrl+R)、放大 (Ctrl+=)、缩小 (Ctrl+-)、重置缩放 (Ctrl+0)、全屏切换 (F11) 以及浅色/深色工程界面切换；联网时可通过「帮助 → 检查软件更新...」在线升级。</p>
         </div>
       </div>
     </div>
@@ -26008,7 +26059,7 @@ Call main()
   <div id="gbLicenseModal" class="gb-desktop-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="gbLicenseModalTitle">
     <div class="gb-desktop-modal-card p-6 space-y-4" style="max-width: 560px;">
       <div class="border-b border-slate-200 pb-3">
-        <h2 id="gbLicenseModalTitle" class="text-base font-bold">软件授权激活 · GearBox Pro V5.0</h2>
+        <h2 id="gbLicenseModalTitle" class="text-base font-bold">软件授权激活 · GearBox Pro V5.0.6</h2>
         <p id="gbLicenseModalSubtitle" class="text-xs text-slate-500 mt-1">首次使用或授权到期时需完成离线验签激活。授权成功后将不再弹窗显示授权信息，直至授权到期。</p>
       </div>
 

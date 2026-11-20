@@ -35,6 +35,20 @@ jobs:
       - name: Run offline license & CAD security verification tests
         run: npm run verify
 
+      - name: Sync GitHub repository into package.json build.publish
+        shell: pwsh
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            const [owner, repo] = (process.env.GITHUB_REPOSITORY || '').split('/');
+            if (owner && repo && pkg.build && Array.isArray(pkg.build.publish) && pkg.build.publish[0]) {
+              pkg.build.publish[0].owner = owner;
+              pkg.build.publish[0].repo = repo;
+              fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+            }
+          "
+
       - name: Build Windows Installer (NSIS + latest.yml) & Portable EXE
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false

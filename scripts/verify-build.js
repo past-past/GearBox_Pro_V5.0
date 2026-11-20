@@ -113,10 +113,10 @@ try {
   }
 
   const rendererSource = fs.readFileSync(path.join(rootDir, 'src', 'renderer', 'index.html'), 'utf8');
-  const swEntryPattern = /^[ \t]*Set swApp = Application\.SldWorks[ \t]*\r?\n[ \t]*If swApp Is Nothing Then Exit Sub/m;
-  assert(rendererSource.includes(swEntryPattern.source), 'VBScript 启动器必须匹配带缩进的 SolidWorks VBA 入口');
-  const convertedEntry = '    Set swApp = Application.SldWorks\r\n    If swApp Is Nothing Then Exit Sub'
-    .replace(swEntryPattern, '    Set swApp = GetObject(, "SldWorks.Application")');
+  const swEntryPattern = /^([ \t]*)Set\s+swApp\s*=\s*Application\.SldWorks\r?\n[ \t]*If\s+swApp\s+Is\s+Nothing\s+Then\s+Exit\s+Sub/m;
+  assert(rendererSource.includes(swEntryPattern.source), 'VBScript 启动器必须匹配带缩进与空白变化的 SolidWorks VBA 入口');
+  const convertedEntry = '\tSet  swApp = Application.SldWorks\r\n\tIf swApp Is Nothing Then Exit Sub'
+    .replace(swEntryPattern, (_match, indent) => `${indent}Set swApp = GetObject(, "SldWorks.Application")`);
   assert(!convertedEntry.includes('Application.SldWorks'), 'VBScript 不应保留 VBA 专用 Application.SldWorks 入口');
 
   const nextCounterPattern = /^([ \t]*)Next[ \t]+[A-Za-z_]\w*[ \t]*$/gim;
@@ -124,6 +124,7 @@ try {
   const convertedLoops = '        Next pIdx\r\n    Next gearIdx\r\n    Next'
     .replace(nextCounterPattern, '$1Next');
   assert.strictEqual(convertedLoops, '        Next\r\n    Next\r\n    Next');
+  assert(rendererSource.includes("setVal('inputHousingMaterial', state.housingMaterial)"), '参数工程载入必须同步箱体材料控件');
 
   assert.throws(() => {
     validateSolidWorksRequest({

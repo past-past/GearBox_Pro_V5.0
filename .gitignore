@@ -11,6 +11,8 @@ src/renderer/vendor/tailwind.css
 license-server/keys/private.pem
 license-server/keys/*.key
 license-server/.env
+license-server/admin-token.txt
+license-server/generate-admin-token.bat
 license-server/issued-audit.jsonl
 *.gbplic
 *.lic
