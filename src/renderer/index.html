@@ -13929,6 +13929,7 @@ End Sub`;
       const vbsBody = vbaCode
         .replace(/^Option Explicit\r?\n?/m, '')
         .replace(/\bAs\s+(Object|Integer|Long|Boolean|String|Double|Variant)\b/g, '')
+        .replace(/^([ \t]*)Next[ \t]+[A-Za-z_]\w*[ \t]*$/gim, '$1Next')
         .replace(/\bvbInformation\b/g, '64')
         .replace(/\bvbExclamation\b/g, '48')
         .replace(

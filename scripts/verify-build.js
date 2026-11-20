@@ -119,6 +119,12 @@ try {
     .replace(swEntryPattern, '    Set swApp = GetObject(, "SldWorks.Application")');
   assert(!convertedEntry.includes('Application.SldWorks'), 'VBScript 不应保留 VBA 专用 Application.SldWorks 入口');
 
+  const nextCounterPattern = /^([ \t]*)Next[ \t]+[A-Za-z_]\w*[ \t]*$/gim;
+  assert(rendererSource.includes(nextCounterPattern.source), 'VBScript 转换必须移除 Next 后的 VBA 循环变量');
+  const convertedLoops = '        Next pIdx\r\n    Next gearIdx\r\n    Next'
+    .replace(nextCounterPattern, '$1Next');
+  assert.strictEqual(convertedLoops, '        Next\r\n    Next\r\n    Next');
+
   assert.throws(() => {
     validateSolidWorksRequest({
       command: 'SW_BUILD_GEARBOX',
