@@ -113,6 +113,13 @@ try {
   }
 
   const rendererSource = fs.readFileSync(path.join(rootDir, 'src', 'renderer', 'index.html'), 'utf8');
+  assert(
+    rendererSource.includes("window.gearboxDesktop.chooseSaveDirectory()") &&
+      rendererSource.includes("saveDirOptions = { mode: 'custom', customBaseDir: result.path }") &&
+      rendererSource.includes('function generateSolidWorksVBAMacro(d, saveDirOptions)') &&
+      rendererSource.includes('saveDirOptions && saveDirOptions.customBaseDir !== undefined'),
+    '桌面端运行时选择保存目录必须使用原生文件夹选择框并将路径传给建模脚本'
+  );
   const swEntryPattern = /^([ \t]*)Set\s+swApp\s*=\s*Application\.SldWorks\r?\n[ \t]*If\s+swApp\s+Is\s+Nothing\s+Then\s+Exit\s+Sub/m;
   assert(rendererSource.includes(swEntryPattern.source), 'VBScript 启动器必须匹配带缩进与空白变化的 SolidWorks VBA 入口');
   const convertedEntry = '\tSet  swApp = Application.SldWorks\r\n\tIf swApp Is Nothing Then Exit Sub'

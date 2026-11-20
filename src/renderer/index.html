@@ -12356,8 +12356,12 @@ ${xrefOffset}
       return entries;
     }
 
-    function generateSolidWorksVBAMacro(d) {
+    function generateSolidWorksVBAMacro(d, saveDirOptions) {
       const h = d.housing;
+      const saveDirMode = (saveDirOptions && saveDirOptions.mode) || state.swSaveDirMode || 'prompt';
+      const customSaveDir = saveDirOptions && saveDirOptions.customBaseDir !== undefined
+        ? saveDirOptions.customBaseDir
+        : (state.swCustomSaveDir || '');
       const cc = h.castCoverTangent;
       const wt = h.weldedCoverTrap;
       const cFlangeM = (h.c_flange_protrude / 1000).toFixed(5);
@@ -13487,7 +13491,7 @@ Sub main()
 
     On Error Resume Next
     Set fso = CreateObject("Scripting.FileSystemObject")
-    outDir = SelectSaveOutputDirectory(fso, "${state.swSaveDirMode || 'prompt'}", "${(state.swCustomSaveDir || '').replace(/"/g, '').trim()}", "${d.gearboxFolderName || ('SW_GearBox_' + safeCode)}")
+    outDir = SelectSaveOutputDirectory(fso, "${saveDirMode}", "${String(customSaveDir).replace(/"/g, '').trim()}", "${d.gearboxFolderName || ('SW_GearBox_' + safeCode)}")
     If outDir = "" Then
         MsgBox "已取消选择保存位置，SolidWorks 三维建模操作已中止。", vbExclamation, "GearBox Studio Pro"
         Exit Sub
@@ -13974,8 +13978,8 @@ End Sub`;
     }
 
     // Pure, Antivirus-Safe SolidWorks COM VBScript Generator (ZERO PowerShell, ZERO Startup folder, ZERO "Nothing" late-binding errors!)
-    function generateVBScriptOneClickLauncher(d) {
-      const vbaCode = generateSolidWorksVBAMacro(d);
+    function generateVBScriptOneClickLauncher(d, saveDirOptions) {
+      const vbaCode = generateSolidWorksVBAMacro(d, saveDirOptions);
       const scope = state.swModelScope || 'all';
       const vbsBody = vbaCode
         .replace(/^Option Explicit\r?\n?/m, '')
@@ -14019,7 +14023,6 @@ Call main()
       if (notifyUnverifiedBearingCatalog(d)) return;
       const scope = state.swModelScope || 'all';
       const eqEntries = buildEquationEntriesList(d);
-      const vbsPayload = generateVBScriptOneClickLauncher(d);
       const modal = document.getElementById('swLiveConsoleModal');
       const logBox = document.getElementById('swLiveConsoleLog');
       const statusBadge = document.getElementById('swLiveConsoleStatus');
@@ -14046,6 +14049,44 @@ Call main()
 
       appendLog(`启动 SolidWorks 自动建模引擎：型号 ${d.codeName} (模块: ${scope})`);
       appendLog(`已准备 ${eqEntries.length} 项全局变量方程式 (含中文备注) 与草图尺寸关联规则...`);
+
+      let saveDirOptions;
+      if (
+        (state.swSaveDirMode || 'prompt') === 'prompt' &&
+        window.gearboxDesktop &&
+        typeof window.gearboxDesktop.runSolidWorksModeling === 'function' &&
+        typeof window.gearboxDesktop.chooseSaveDirectory === 'function'
+      ) {
+        appendLog('正在打开桌面端原生文件夹选择框...');
+        try {
+          const result = await window.gearboxDesktop.chooseSaveDirectory();
+          if (!result || !result.ok || !result.path) {
+            const message = result && result.error
+              ? `保存目录选择失败：${result.error}`
+              : '已取消选择保存位置，建模未启动。';
+            appendLog('⚠ ' + message);
+            if (statusBadge) {
+              statusBadge.textContent = '已取消/无法选择保存目录';
+              statusBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 mono';
+            }
+            showToast(message);
+            return;
+          }
+          saveDirOptions = { mode: 'custom', customBaseDir: result.path };
+          appendLog(`✓ 已选择保存根目录：${result.path}`);
+        } catch (error) {
+          const message = error && error.message ? error.message : String(error);
+          appendLog('⚠ 无法打开桌面端文件夹选择框：' + message);
+          if (statusBadge) {
+            statusBadge.textContent = '无法打开保存目录选择框';
+            statusBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40 mono';
+          }
+          showToast('无法打开保存目录选择框：' + message);
+          return;
+        }
+      }
+
+      const vbsPayload = generateVBScriptOneClickLauncher(d, saveDirOptions);
 
       // ==================== 通道 1: Electron 受控主进程安全 IPC 建模通道 ====================
       try {
@@ -24127,7 +24168,11 @@ Call main()
               }
               return;
             }
-          } catch (e) {}
+          } catch (error) {
+            const message = error && error.message ? error.message : String(error);
+            showToast(`无法打开保存目录选择框：${message}`);
+            return;
+          }
 
           // 2. In browser environment: allow entering a custom local path OR using runtime Windows Folder Picker
           const folderName = state.design ? state.design.gearboxFolderName : '减速机文件夹';
@@ -26024,7 +26069,7 @@ Call main()
     <div class="gb-desktop-modal-card p-6 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
         <div>
-          <h2 id="gbHelpModalTitle" class="text-base font-bold">GearBox Pro 使用流程与帮助文档 (V5.0.6)</h2>
+          <h2 id="gbHelpModalTitle" class="text-base font-bold">GearBox Pro 使用流程与帮助文档 (V5.0.7)</h2>
           <p class="text-xs text-slate-500 mt-0.5">减速机参数化设计、工程保存与 SolidWorks / AutoCAD Mechanical 自动建模指南</p>
         </div>
         <button id="btnCloseHelpModal" type="button" class="px-2.5 py-1 rounded border border-slate-300 text-xs font-medium hover:bg-slate-100">关闭</button>
@@ -26059,7 +26104,7 @@ Call main()
   <div id="gbLicenseModal" class="gb-desktop-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="gbLicenseModalTitle">
     <div class="gb-desktop-modal-card p-6 space-y-4" style="max-width: 560px;">
       <div class="border-b border-slate-200 pb-3">
-        <h2 id="gbLicenseModalTitle" class="text-base font-bold">软件授权激活 · GearBox Pro V5.0.6</h2>
+        <h2 id="gbLicenseModalTitle" class="text-base font-bold">软件授权激活 · GearBox Pro V5.0.7</h2>
         <p id="gbLicenseModalSubtitle" class="text-xs text-slate-500 mt-1">首次使用或授权到期时需完成离线验签激活。授权成功后将不再弹窗显示授权信息，直至授权到期。</p>
       </div>
 
