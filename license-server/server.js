@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * GearBox Pro V5.0.6 授权签发管理服务器（零第三方依赖，纯 Node.js 原生 http + crypto）
+ * GearBox Pro V5.0.8 授权签发管理服务器（零第三方依赖，纯 Node.js 原生 http + crypto）
  * 支持：单机绑定授权（指定机器码）与 通用授权码（不限机器码，仍受私钥签名与到期日期约束）
  */
 const http = require('http');
@@ -33,7 +33,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>GearBox Pro V5.0.6 授权签发管理台</title>
+<title>GearBox Pro V5.0.8 授权签发管理台</title>
 <style>
   body { font-family: "Microsoft YaHei", system-ui, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 32px 16px; }
   .card { max-width: 680px; margin: 0 auto; background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); }
@@ -53,7 +53,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
 </head>
 <body>
   <div class="card">
-    <h1>GearBox Pro V5.0.6 授权签发管理台</h1>
+    <h1>GearBox Pro V5.0.8 授权签发管理台</h1>
     <p class="sub">私钥仅保留在服务端 · 支持单机绑定授权与通用授权 · 客户端离线公钥验签</p>
     <label>管理员令牌 (LICENSE_ADMIN_TOKEN)</label>
     <input id="token" type="password" placeholder="输入服务端配置的管理员令牌" />
@@ -160,7 +160,7 @@ function sendJson(res, status, obj) {
 
 const server = http.createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/health') {
-    return sendJson(res, 200, { ok: true, service: 'GearBox-Pro-License-Server', version: '5.0.6' });
+    return sendJson(res, 200, { ok: true, service: 'GearBox-Pro-License-Server', version: '5.0.8' });
   }
 
   if (req.method === 'GET' && req.url === '/') {
@@ -221,6 +221,6 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`✓ GearBox Pro V5.0.6 授权签发管理服务器已启动：http://${HOST}:${PORT}`);
+  console.log(`✓ GearBox Pro V5.0.8 授权签发管理服务器已启动：http://${HOST}:${PORT}`);
   console.log('  支持单机绑定授权与通用授权（ANY），建议生产环境通过 Nginx/Caddy 启用 HTTPS。');
 });

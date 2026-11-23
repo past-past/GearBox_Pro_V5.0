@@ -517,7 +517,7 @@
     }
 
 
-    /* ==================== V5.0 浅色工程界面高对比度增强修复 ==================== */
+    /* ==================== V5.0.8 浅色工程界面高对比度增强修复 ==================== */
     /* 1. 修复浅色模式下 3D 视口背景过白导致透明箱盖与银灰轴段看不清的问题 */
     body.theme-industrial-light #threeViewportContainer {
       background: linear-gradient(180deg, #cfdbe8 0%, #dde6f0 100%) !important;
@@ -631,7 +631,8 @@
 
   <!-- Top Navigation & Status Bar -->
   <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-30">
-    <div class="max-w-[1600px] mx-auto px-4 py-1.5 flex flex-wrap items-center justify-start gap-2">
+    <div class="max-w-[1600px] mx-auto px-4 py-2.5 flex flex-wrap items-center justify-start gap-2.5">
+      <!-- Hidden status spans retained for JS compatibility -->
       <div id="headerModelBadge" class="hidden">
         <span id="badgeCodeName">ZLY-200-12.5</span>
         <span id="badgeOutTorque">T_out: 1176 N·m</span>
@@ -677,24 +678,37 @@
     </div>
   </header>
 
-  <!-- Main Content Grid -->
-  <div class="flex-1 max-w-[1600px] w-full mx-auto px-4 py-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+  <!-- Main Content Layout: Horizontal Top Parameter Workbench + Full-Width Workspace -->
+  <div class="flex-1 max-w-[1680px] w-full mx-auto px-4 py-3 flex flex-col gap-3.5">
 
-    <!-- LEFT SIDEBAR: Parameter Inputs, Per-Stage Custom Modules & Mounting Dimensions (4 cols on lg) -->
-    <aside class="lg:col-span-4 space-y-3.5">
+    <!-- TOP HORIZONTAL PARAMETER WORKBENCH -->
+    <aside class="w-full space-y-2.5">
 
-      <!-- Quick Engineering Presets -->
-      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <!-- Compact Single-Row Presets + Action Bar (Non-floating, concise) -->
+      <section class="bg-slate-900/90 border border-slate-800 rounded-xl px-3.5 py-2.5 space-y-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
-            典型工程方案
-          </h2>
-          
+            <h2 class="text-xs font-semibold tracking-wider text-slate-300">典型工程方案与参数输入</h2>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="mainCalcStatusBadge" class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+              ✓ 已计算
+            </span>
+            <button type="button" id="btnRunMainCalc" class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-sky-600 to-teal-600 hover:from-sky-500 hover:to-teal-500 text-white text-xs font-bold shadow flex items-center gap-1.5 transition btn-solid-primary">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>计算</span>
+            </button>
+            <button type="button" id="btnToggleParamPanel" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-medium transition">
+              收起参数区
+            </button>
+          </div>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-1.5" id="presetButtonsContainer">
+        <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-1.5" id="presetButtonsContainer">
           <button type="button" data-preset="zdy1" class="preset-btn text-left px-2 py-1.5 rounded-lg border border-slate-800 bg-slate-950/70 hover:bg-slate-800/70 transition">
             <div class="text-[11px] font-semibold text-slate-200">ZDY160 单级</div>
             <div class="text-[10px] text-slate-400 mono">a=160 · i=3.55</div>
@@ -730,8 +744,11 @@
         </div>
       </section>
 
+      <!-- Balanced 2-Row Horizontal Parameter Grid: Row 1 = Modules 1/2/4 (equal height), Row 2 = Module 3 (5-col full-width strip) -->
+      <div id="paramModulesGrid" class="grid grid-cols-1 lg:grid-cols-3 gap-2.5 items-stretch">
+
       <!-- Step 1: Topology, Orthogonal Sub-Type & Stages -->
-      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
+      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-2 h-full lg:order-1">
         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
           <h2 class="text-xs font-semibold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
             <span class="w-4 h-4 rounded bg-sky-500/20 text-sky-300 flex items-center justify-center text-[10px] font-bold">1</span>
@@ -849,7 +866,7 @@
       </section>
 
       <!-- Step 2: Main Technical Parameters -->
-      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
+      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-2 h-full lg:order-2">
         <div class="flex items-center justify-between border-b border-slate-800 pb-2 gap-2">
           <h2 class="text-xs font-semibold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
             <span class="w-4 h-4 rounded bg-sky-500/20 text-sky-300 flex items-center justify-center text-[10px] font-bold">2</span>
@@ -923,8 +940,8 @@
         </div>
       </section>
 
-      <!-- NEW Step 3: Per-Stage Custom Allocation Module (Stage Ratios, Stage Center Distances, Stage Helix Angles) -->
-      <section class="bg-slate-900/90 border border-sky-500/30 rounded-xl p-4 space-y-3.5 shadow-lg shadow-sky-950/20">
+      <!-- NEW Step 3: Per-Stage Custom Allocation Module (Full-Width 5-Column Horizontal Strip) -->
+      <section class="bg-slate-900/90 border border-sky-500/30 rounded-xl p-3 space-y-2 shadow-lg shadow-sky-950/20 lg:col-span-3 lg:order-4">
         <div class="flex items-center justify-between border-b border-slate-800 pb-2 gap-2">
           <h2 class="text-xs font-semibold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
             <span class="w-4 h-4 rounded bg-sky-500/20 text-sky-300 flex items-center justify-center text-[10px] font-bold">3</span>
@@ -935,6 +952,7 @@
           </button>
         </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 items-stretch">
         <!-- 3A: Custom Stage Ratio Allocation Module -->
         <div class="rounded-lg bg-slate-950/80 border border-slate-800 p-2.5 space-y-2">
           <div class="flex items-center justify-between">
@@ -1038,14 +1056,14 @@
 
         <!-- 3D: Custom Stage Free Decimal Modules (Supports arbitrary decimal mte / mn for Spiral Bevel & all Gear Types) -->
         <div class="rounded-lg bg-slate-950/80 border border-slate-800 p-2.5 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              各级齿轮模数 (m<sub>te1</sub> / m<sub>n1</sub>, m<sub>n2</sub>, m<sub>n3</sub> mm)
+          <div class="flex flex-wrap items-center justify-between gap-1">
+            <span class="text-xs font-semibold text-slate-200 inline-flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+              <span>各级模数 (mm)</span>
             </span>
-            <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+            <label class="inline-flex items-center gap-1.5 cursor-pointer select-none shrink-0">
               <input type="checkbox" id="toggleCustomStageModules" class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0" />
-              <span class="text-[11px] text-emerald-300 font-medium">自由输入小数模数</span>
+              <span class="text-[11px] text-emerald-300 font-medium">自定义模数</span>
             </label>
           </div>
           <div class="grid grid-cols-3 gap-2">
@@ -1070,7 +1088,7 @@
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-sky-200 flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-              斜齿轮旋向判定与同轴轴向力抵消配置
+              斜齿轮旋向配置
             </span>
             <div class="flex items-center gap-2">
               <button type="button" id="btnOptimalHelixHands" class="px-2 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-[10px] font-medium transition">
@@ -1110,6 +1128,7 @@
           </div>
         </div>
 
+        </div>
         <!-- Real-Time Inter-Shaft & Gear Geometric Interference Alert (Hidden when no interference!) -->
         <div id="shaftInterferenceCard" class="hidden rounded-lg border border-rose-500/60 bg-rose-950/30 p-2.5 space-y-2 transition">
           <div class="flex items-center justify-between gap-2">
@@ -1132,7 +1151,7 @@
       </section>
 
       <!-- Step 4: Installation & Envelope Dimensions (Auto vs Custom Override) -->
-      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
+      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-2 h-full lg:order-3">
         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
           <h2 class="text-xs font-semibold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
             <span class="w-4 h-4 rounded bg-sky-500/20 text-sky-300 flex items-center justify-center text-[10px] font-bold">4</span>
@@ -1223,10 +1242,12 @@
         </div>
       </section>
 
+      </div><!-- /#paramModulesGrid -->
+
     </aside>
 
-    <!-- RIGHT WORKSPACE: KPI Summary + 4 Functional Views (8 cols on lg) -->
-    <main class="lg:col-span-8 space-y-4">
+    <!-- FULL-WIDTH WORKSPACE: KPI Summary + Functional Views -->
+    <main class="w-full space-y-4">
 
       <!-- Top KPI Strip -->
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-12 gap-3">
@@ -1313,10 +1334,10 @@
         </button>
       </div>
 
-      <!-- TAB 1: 3D CAD Viewport + 2D Engineering Blueprint -->
-      <div id="tab3d" class="tab-panel space-y-4">
-        <!-- 3D Viewport Card -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+      <!-- TAB 1: 3D CAD Viewport + 2D Engineering Blueprint (Balanced 2-Column Edge-to-Edge Dashboard) -->
+      <div id="tab3d" class="tab-panel grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch">
+        <!-- Right 6 cols: 3D Viewport Card -->
+        <div class="xl:col-span-6 xl:order-2 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col">
           <div class="px-4 py-2.5 bg-slate-900/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-sky-400"></span>
@@ -1373,7 +1394,7 @@
           </div>
 
           <!-- Three.js Canvas Container -->
-          <div class="relative h-[380px] w-full cad-grid-bg" id="threeViewportContainer">
+          <div class="relative min-h-[440px] xl:min-h-[540px] flex-1 w-full cad-grid-bg" id="threeViewportContainer">
             <!-- Overlay HUD Legend -->
             <div class="absolute top-3 left-3 pointer-events-none space-y-1 bg-slate-950/85 backdrop-blur border border-slate-800/90 rounded-lg px-3 py-2 text-[11px]">
               <div class="font-semibold text-sky-300" id="hudModelTitle">ZLY-200 二级平行轴圆柱减速机</div>
@@ -1391,35 +1412,37 @@
           </div>
         </div>
 
-        <!-- 2D Engineering Section & Kinematic Schematic Blueprint -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-          <div class="px-4 py-2.5 bg-slate-900/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <h3 class="text-xs font-semibold text-slate-200" id="blueprintTitleText">分箱面与主视剖面布置图</h3>
+        <!-- Left 6 cols: Stacked 2D Blueprint + Oil Level Schematic (Edge-to-Edge) -->
+        <div class="xl:col-span-6 xl:order-1 flex flex-col gap-3.5">
+          <!-- 2D Engineering Section & Kinematic Schematic Blueprint -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div class="px-3.5 py-2 bg-slate-900/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <h3 class="text-xs font-semibold text-slate-200" id="blueprintTitleText">分箱面与主视剖面布置图</h3>
+              </div>
             </div>
-            
+            <div class="p-2 bg-slate-950">
+              <canvas id="blueprintCanvas" width="920" height="360" class="w-full h-auto block rounded-lg border border-slate-800/80"></canvas>
+            </div>
           </div>
-          <div class="p-3 bg-slate-950 flex justify-center">
-            <canvas id="blueprintCanvas" width="920" height="360" class="w-full max-w-[920px] h-auto rounded-lg border border-slate-800/80"></canvas>
-          </div>
-        </div>
 
-        <!-- Standard Oil Level High/Low & Gear Immersion Depth Schematic (Per Mechanical Design Handbook) -->
-        <div class="bg-slate-900 border border-amber-500/30 rounded-xl overflow-hidden">
-          <div class="px-4 py-2.5 bg-slate-900/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-              <h3 class="text-xs font-semibold text-amber-300" id="oilStandardTitleText">减速器油池浸油深度与最高/最低油位标准示意图 (按《机械设计手册》&amp;《机械设计课程设计手册》标准)</h3>
+          <!-- Standard Oil Level High/Low & Gear Immersion Depth Schematic (Per Mechanical Design Handbook) -->
+          <div class="bg-slate-900 border border-amber-500/30 rounded-xl overflow-hidden">
+            <div class="px-3.5 py-2 bg-slate-900/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                <h3 class="text-xs font-semibold text-amber-300" id="oilStandardTitleText">油池浸油深度与最高/最低油位示意图</h3>
+              </div>
+              <div class="flex flex-wrap items-center gap-1.5 text-[11px] mono" id="oilStandardBadgesBar">
+                <span class="px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-emerald-300" id="badgeOilMax">▽ 最高油位 MAX: -105mm</span>
+                <span class="px-1.5 py-0.5 rounded bg-rose-500/15 border border-rose-500/40 text-rose-300" id="badgeOilMin">▽ 最低油位 MIN: -120mm</span>
+                <span class="px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300" id="badgeOilVol">推荐注油量: 12.5~16.0 L</span>
+              </div>
             </div>
-            <div class="flex flex-wrap items-center gap-2 text-[11px] mono" id="oilStandardBadgesBar">
-              <span class="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-emerald-300" id="badgeOilMax">▽ 最高油位 MAX: -105mm</span>
-              <span class="px-2 py-0.5 rounded bg-rose-500/15 border border-rose-500/40 text-rose-300" id="badgeOilMin">▽ 最低油位 MIN: -120mm</span>
-              <span class="px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300" id="badgeOilVol">推荐注油量: 12.5~16.0 L</span>
+            <div class="p-2 bg-slate-950">
+              <canvas id="oilLevelStandardCanvas" width="920" height="310" class="w-full h-auto block rounded-lg border border-slate-800/80"></canvas>
             </div>
-          </div>
-          <div class="p-3 bg-slate-950 flex flex-col items-center gap-2">
-            <canvas id="oilLevelStandardCanvas" width="920" height="310" class="w-full max-w-[920px] h-auto rounded-lg border border-slate-800/80"></canvas>
           </div>
         </div>
       </div>
@@ -1491,43 +1514,6 @@
             <span id="materialSpecBadge" class="text-xs px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 mono">
               20CrMnTi 渗碳淬火 · [σ_H]=1300 MPa
             </span>
-          </div>
-
-          <!-- NEW (Requirement #1): Interactive Gear Pair & Stepped Shaft Dimension Schematics -->
-          <div class="rounded-xl border border-sky-500/30 bg-slate-950/90 p-3.5 space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-sky-400"></span>
-                <h4 class="text-xs font-bold text-sky-300">齿轮副与阶梯轴结构示意图</h4>
-              </div>
-              <div class="flex flex-wrap items-center gap-3 text-xs">
-                <div class="flex items-center gap-1.5">
-                  <label for="selectSchematicStage" class="text-slate-400">当前查看齿轮级:</label>
-                  <select id="selectSchematicStage" class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-amber-300 mono text-xs">
-                    <option value="0">第 1 级齿轮副</option>
-                    <option value="1">第 2 级齿轮副</option>
-                    <option value="2">第 3 级齿轮副</option>
-                  </select>
-                </div>
-                <div class="flex items-center gap-1.5">
-                  <label for="selectSchematicShaft" class="text-slate-400">当前查看阶梯轴:</label>
-                  <select id="selectSchematicShaft" class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-sky-300 mono text-xs">
-                    <option value="0">I轴 (高速输入轴)</option>
-                    <option value="1" selected>II轴 (中间/输出轴)</option>
-                    <option value="2">III轴 (中间/输出轴)</option>
-                    <option value="3">IV轴 (低速输出轴)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
-              <div class="rounded-lg border border-slate-800 bg-slate-950 p-2 flex flex-col items-center">
-                <canvas id="gearPairDimCanvas" width="540" height="330" class="w-full max-w-[540px] h-auto rounded"></canvas>
-              </div>
-              <div class="rounded-lg border border-slate-800 bg-slate-950 p-2 flex flex-col items-center">
-                <canvas id="shaftStepDimCanvas" width="540" height="330" class="w-full max-w-[540px] h-auto rounded"></canvas>
-              </div>
-            </div>
           </div>
 
           <!-- Gear Parameter Calculation Module (2-Column Structured Form Layout + Automatic Profile Shift Sizing) -->
@@ -1907,6 +1893,106 @@
             </div>
           </div>
 
+          <!-- Gear Parameter Module Calculate Action Bar -->
+          <div class="rounded-lg border border-teal-500/35 bg-slate-900/90 px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-semibold text-white">齿轮参数计算确认</span>
+              <span id="gearCalcStatusBadge" class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                待点击计算以显示计算报告
+              </span>
+            </div>
+            <button type="button" id="btnCalcGearModule" class="px-4 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow flex items-center gap-1.5 transition btn-solid-primary">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+              </svg>
+              <span>计算齿轮参数并显示报告</span>
+            </button>
+          </div>
+
+          <!-- NEW (Requirement #1): Interactive Gear Pair & Stepped Shaft Dimension Schematics -->
+          <div class="rounded-xl border border-sky-500/30 bg-slate-950/90 p-3.5 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                <h4 class="text-xs font-bold text-sky-300">齿轮副与阶梯轴结构示意图</h4>
+              </div>
+              <div class="flex flex-wrap items-center gap-3 text-xs">
+                <div class="flex items-center gap-1.5">
+                  <label for="selectSchematicStage" class="text-slate-400">当前查看齿轮级:</label>
+                  <select id="selectSchematicStage" class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-amber-300 mono text-xs">
+                    <option value="0">第 1 级齿轮副</option>
+                    <option value="1">第 2 级齿轮副</option>
+                    <option value="2">第 3 级齿轮副</option>
+                  </select>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <label for="selectSchematicShaft" class="text-slate-400">当前查看阶梯轴:</label>
+                  <select id="selectSchematicShaft" class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-sky-300 mono text-xs">
+                    <option value="0">I轴 (高速输入轴)</option>
+                    <option value="1" selected>II轴 (中间/输出轴)</option>
+                    <option value="2">III轴 (中间/输出轴)</option>
+                    <option value="3">IV轴 (低速输出轴)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+              <div class="rounded-lg border border-slate-800 bg-slate-950 p-2 flex flex-col items-center">
+                <canvas id="gearPairDimCanvas" width="540" height="330" class="w-full h-auto rounded"></canvas>
+              </div>
+              <div class="rounded-lg border border-slate-800 bg-slate-950 p-2 flex flex-col items-center">
+                <canvas id="shaftStepDimCanvas" width="540" height="330" class="w-full h-auto rounded"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi-Scheme Smart Tooth-Matching Candidate Table -->
+          <div id="toothCandidatesCard" class="rounded-lg border border-indigo-500/35 bg-slate-950/90 p-3.5 space-y-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                <h4 class="text-xs font-bold text-white" id="toothCandTitle">多方案智能配齿候选表（第 1 级）</h4>
+                <span id="toothCandContextBadge" class="px-2 py-0.5 rounded bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[11px] mono">
+                  枚举不同模数 · 优先互质齿数
+                </span>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 text-xs">
+                <label for="selectToothCandSort" class="text-slate-400 text-[11px]">排序准则:</label>
+                <select id="selectToothCandSort" class="px-2 py-1 rounded bg-slate-900 border border-slate-700 text-[11px] text-white focus:outline-none focus:border-indigo-400">
+                  <option value="comprehensive" selected>综合最优（强度+互质+重合度）</option>
+                  <option value="strength">安全系数优先（SH / SF）</option>
+                  <option value="contact_ratio">高重合度/低噪优先（εγ）</option>
+                  <option value="ratio_err">传动比精度优先（误差最小）</option>
+                </select>
+                <button type="button" id="btnRefreshToothCandidates" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 text-[11px] font-medium transition">
+                  刷新候选方案
+                </button>
+              </div>
+            </div>
+            <div class="overflow-x-auto rounded border border-slate-800">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-900/90 text-slate-400 border-b border-slate-800 text-[11px]">
+                    <th class="py-2 px-2.5 font-medium">方案与推荐标签</th>
+                    <th class="py-2 px-2 font-medium text-right">模数 (mm)</th>
+                    <th class="py-2 px-2 font-medium text-center">齿数配对 &amp; 互质</th>
+                    <th class="py-2 px-2 font-medium text-right">实际速比 / 误差</th>
+                    <th class="py-2 px-2 font-medium text-center">变位系数 x₁/x₂</th>
+                    <th class="py-2 px-2 font-medium text-right">总重合度 εγ</th>
+                    <th class="py-2 px-2 font-medium text-right">安全系数 SH / SFmin</th>
+                    <th class="py-2 px-2.5 font-medium text-center">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="toothCandidatesTableBody" class="divide-y divide-slate-800/70">
+                  <!-- Populated dynamically by renderToothCandidatesTable(d) -->
+                </tbody>
+              </table>
+            </div>
+            <div class="text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
+              <span>提示：点击任一方案的【一键选用】将立即写入该级参数并同步刷新计算报告与 3D/2D 模型；绿色「互质」表示 gcd(z₁,z₂)=1，可使轮齿磨损更均匀。</span>
+            </div>
+          </div>
+
           <!-- Gear & Shaft Strength Verification Diagnostic Panel (Hidden when all pass!) -->
           <div id="gearRemedyPanel" class="hidden rounded-lg border border-rose-500/50 bg-rose-950/25 p-3 space-y-2">
           </div>
@@ -1962,6 +2048,15 @@
               
             </div>
             <div class="flex flex-wrap items-center gap-2">
+              <span id="bearingCalcStatusBadge" class="px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                ✓ 轴承校核结果已同步
+              </span>
+              <button type="button" id="btnCalcBearingLife" class="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-xs font-bold text-white shadow flex items-center gap-1.5 transition btn-solid-primary">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                <span>计算轴承寿命</span>
+              </button>
               <button type="button" id="btnUpgradeBearingsSeries" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-xs font-medium text-white transition">
                 一键升级重载轴承系列 (302→303)
               </button>
@@ -2057,8 +2152,14 @@
               </div>
             </div>
             <div class="bg-slate-950 rounded-lg border border-slate-800 p-2 flex justify-center">
-              <canvas id="bearingLifeSchematicCanvas" width="900" height="285" class="w-full max-w-[900px] h-auto rounded"></canvas>
+              <canvas id="bearingLifeSchematicCanvas" width="900" height="285" class="w-full max-w-[1280px] h-auto rounded"></canvas>
             </div>
+          </div>
+
+          <!-- Bearing Pending Recalculation Notice -->
+          <div id="bearingPendingNotice" class="hidden rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200 flex flex-wrap items-center justify-between gap-2">
+            <span>轴承校核参数已修改，请点击上方【计算轴承寿命】按钮重新计算（若寿命不足将自动给出推荐解决方案）。</span>
+            <button type="button" id="btnCalcBearingLifeInline" class="px-2.5 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-semibold transition">立即计算</button>
           </div>
 
           <!-- NEW (Requirement #5): Bearing Verification Diagnostic & Actionable Solutions Panel -->
@@ -4471,7 +4572,7 @@
       return lookupKeywayFull(d).spec;
     }
 
-    // GB/T 1096-2003 standard flat-key preferred lengths.
+    // GB/T 1096-2003 Standard Flat Key Preferred Lengths L (mm)
     const STD_GB1096_KEY_LENGTHS = [
       12, 14, 16, 18, 20, 22, 25, 28, 32, 36, 40, 45, 50, 56, 63, 70, 80, 90,
       100, 110, 125, 140, 160, 180, 200, 220, 250, 280, 320, 360, 400
@@ -4486,7 +4587,7 @@
       return best;
     }
 
-    // GB/T 13871.1-2007 / GB/T 9877-2008 standard skeleton oil-seal sizes (d x D x B, mm).
+    // GB/T 13871.1-2007 / GB/T 9877-2008 Standard Skeleton Oil Seal Table (d × D × B, mm)
     const STD_GB13871_OIL_SEALS = [
       [12, 24, 7], [14, 26, 7], [15, 28, 7], [16, 30, 7], [17, 30, 7], [18, 32, 7],
       [20, 35, 7], [22, 35, 7], [25, 40, 7], [28, 45, 7], [30, 47, 7], [32, 48, 8],
@@ -4608,6 +4709,13 @@
       shiftSizingRule: 'equal_sliding', // 'equal_sliding' | 'equal_bending' | 'din_balanced'
       lockedAutoCenters: [null, null, null],
       lastPopupInterferenceSig: '',
+      mainParamsDirty: false,
+      mainInterferenceBlocked: false,
+      gearReportVisible: false,
+      gearParamsDirty: false,
+      bearingParamsDirty: false,
+      toothCandSortMode: 'comprehensive',
+      lastToothCandidates: [],
       activeMicroStageIdx: 0,
       gearMicroCustom: [
         { enabled: false, autoShift: true, bevelModMode: 'mte', unlockThicknessMod: false, subType: 'cyl_helical', alphaN: 20, mn: 4, z1: 23, z2: 82, b1: 61, b2: 55, xn1: 0.22, xn2: -0.05, xs1: 0, xs2: 0, qWorm: 10, k1: 3, k2: 10, accuracyGrade: 6 },
@@ -4635,7 +4743,7 @@
         d_out: 65
       },
       swCodeMode: 'vba',       // 'vba' | 'python' | 'equations'
-      swModelScope: 'all',     // 'all' | 'full_closed' | 'housing' | 'cast_cover' | 'welded_cover' | 'shafts_gears'
+      swModelScope: 'all',     // 'all' | 'housing_no_cover' | 'housing_both' | 'housing' | 'upper_cover' | 'shafts_gears'
       swSaveDirMode: 'prompt', // 'prompt' | 'desktop' | 'documents' | 'custom'
       swCustomSaveDir: '',     // User-specified base directory path when swSaveDirMode === 'custom'
       brgTargetLife: 15000,    // Required L10h design life (hours)
@@ -5775,7 +5883,7 @@
         const z_spline = Math.max(12, Math.round(d_s1_nom / m_spline) - 1);
         const splineSpec = isSplineShaft ? `EXT ${z_spline}z×${m_spline}m×30P (GB/T 3478)` : '';
 
-        // Step 4.4: Snap the seal journal to a catalogued GB/T oil-seal bore.
+        // Step 4.4: Segment ② Oil-Seal & Bearing End-Cap passage shoulder d_s2 (Strictly snapped to GB/T 13871.1 / GB/T 9877 standard oil seal bore!)
         const gbSealObj = hasExt ? lookupGBOilSeal(d_s1 + 4) : null;
         const d_s2 = hasExt
           ? gbSealObj.d
@@ -5786,8 +5894,19 @@
         const shBrgOvr = (state.shaftBrgOverrides && state.shaftBrgOverrides[idx]) ? state.shaftBrgOverrides[idx] : null;
         const useBrgSeries = (shBrgOvr && shBrgOvr.series) ? shBrgOvr.series : state.brgSeries;
         const useBoreBoost = (shBrgOvr && shBrgOvr.boreBoost) ? shBrgOvr.boreBoost : 0;
-        const d_brg_req = hasExt ? Math.max(25, Math.ceil((d_s2 + 3) / 5) * 5) : Math.max(30, Math.ceil((d_s2 + 5) / 5) * 5);
-        const brg = lookupBearing(d_brg_req, useBrgSeries, useBoreBoost);
+        let d_brg_req = hasExt ? Math.max(25, Math.ceil((d_s2 + 3) / 5) * 5) : Math.max(30, Math.ceil((d_s2 + 5) / 5) * 5);
+        let brg = lookupBearing(d_brg_req, useBrgSeries, useBoreBoost);
+        // 蜗杆可装配性 (DFM/DFA) 强制约束：一体式蜗杆轴必须能从箱体一端轴承座孔穿入安装，
+        // 因此蜗杆轴承座孔径 D_brg 必须严格大于蜗杆齿顶圆直径 da1 + 8mm (留出穿装间隙)!
+        if (isWormDrive && idx === 0 && gearStages[0]) {
+          const minWormBoreD = Math.ceil((gearStages[0].da1 + 8) / 5) * 5;
+          let guard = 0;
+          while (brg.D < minWormBoreD && d_brg_req < 200 && guard < 30) {
+            d_brg_req += 5;
+            brg = lookupBearing(d_brg_req, useBrgSeries, useBoreBoost);
+            guard++;
+          }
+        }
         if (!brg.catalogVerified) {
           const reason = useBrgSeries !== '302'
             ? `系列 ${useBrgSeries} 尚无经过核验的目录数据`
@@ -6345,9 +6464,21 @@
       shafts.forEach((sh, idx) => {
         const stp = sh.stepped;
         const isOrthoInput = (orientation === 'orthogonal' && idx === 0 && !isWormDrive);
+        const isWormInput = (isWormDrive && idx === 0);
         const drivenGearStg = idx > 0 ? gearStages[idx - 1] : null;
         const driveGearStg = idx < gearStages.length ? gearStages[idx] : null;
-        const halfB_in = B_in * 0.5;
+        // For Worm I-shaft (along X), housing inner walls are at ±L_in/2; for Z-axis shafts, ±B_in/2
+        const halfWallIn = B_in * 0.5;
+        const bossProtrude = (sh.bearingBoss && sh.bearingBoss.delta_protrude) ? sh.bearingBoss.delta_protrude : delta_boss_protrude;
+        const halfBossOut = Number((halfWallIn + delta + bossProtrude).toFixed(2));
+        const brgB = Number(sh.brg.B.toFixed(2));
+        const adjW = Math.max(3, Math.min(5, Math.round(brgB * 0.14)));
+        const capFlangeT = Math.max(8, Math.round(delta * 0.95));
+        const boltCount = (sh.brg.D > 105) ? 6 : 4;
+        const d3_sc = (sh.bearingBoss && sh.bearingBoss.d3_screw) ? sh.bearingBoss.d3_screw : (sh.brg.D <= 100 ? 8 : (sh.brg.D <= 160 ? 10 : 12));
+        const tapDrillDia = d3_sc <= 6 ? 5.0 : (d3_sc <= 8 ? 6.8 : (d3_sc <= 10 ? 8.5 : (d3_sc <= 12 ? 10.2 : 14.0)));
+        const clearanceHoleDia = d3_sc <= 6 ? 6.6 : (d3_sc <= 8 ? 9.0 : (d3_sc <= 10 ? 11.0 : (d3_sc <= 12 ? 13.5 : 17.5)));
+        const extSign = isOrthoInput ? -1 : (idx === 0 ? -1 : (idx === shafts.length - 1 ? 1 : 0));
 
         // Enforce strict stepped diameter progression: d_s3 < d_body < d_s4 < d_s5
         stp.d_body = snapToStd(stp.d_s3 + 4, STD_SHAFT_DIAMETERS);
@@ -6358,8 +6489,12 @@
         stp.d_s4 = snapToStd(Math.max(stp.d_s3 + 7, stp.d_body + 2), STD_KEYWAY_SHAFT_DIAMETERS);
         if (stp.d_s4 <= stp.d_body) stp.d_s4 = stp.d_body + 2;
         const hColFix = Math.max(5, Math.round(0.085 * stp.d_s4));
-        if (stp.d_s5 < stp.d_s4 + 2 * hColFix) stp.d_s5 = stp.d_s4 + 2 * hColFix;
+        if (stp.d_s5 < stp.d_s4 + 2 * hColFix) stp.d_s5 = snapToStd(stp.d_s4 + 2 * hColFix, STD_SHAFT_DIAMETERS);
         stp.d_shoulder_L = stp.d_body;
+
+        // Spacer sleeve outer diameter (定距环/套筒外径): presses strictly on bearing inner ring (d_s3 < d_spacer < brg.D - 10)
+        const dSpacerOut = Math.min(Math.floor(sh.brg.D - 10), Math.max(stp.d_s3 + 8, snapToStd(stp.d_s3 + Math.round(stp.d_s3 * 0.22), STD_SHAFT_DIAMETERS)));
+        const spacerSleeves3D = [];
 
         // Refresh keyway specs on sh and stp after snapping d_s1 and d_s4
         const kwExtObj = lookupKeywayFull(stp.d_s1);
@@ -6375,6 +6510,15 @@
             : (stp.hasIntegralPinion ? `${kwGearObj.spec} (仅大轮用键·小轮一体无键)` : `${kwGearObj.spec} (大齿轮平键)`);
         }
 
+        // Exact bearing seat axial bounds inside the housing bearing boss:
+        // Bearing sits at [halfWallIn, halfWallIn + brgB]; Adjusting ring at [halfWallIn + brgB, halfWallIn + brgB + adjW].
+        // Blind end of bearing journal terminates cleanly at (halfWallIn + brgB - 1.5), strictly inside the blind end-cap!
+        // Extension end of bearing journal spans to (halfBossOut - 2), then S2_SEAL passes through Through Cover + TC Oil Seal!
+        const brgJournalBlindLen = Math.max(brgB - 1.5, Math.min(halfBossOut - halfWallIn - 3, brgB));
+        const brgJournalExtLen = Math.max(brgB + 2, Number((halfBossOut - halfWallIn).toFixed(2)));
+        const sealLenClean = stp.l_s1 > 0 ? Math.max(capFlangeT + (sh.oilSeal ? sh.oilSeal.B : 10) + 6, stp.l_s2) : 0;
+        if (stp.l_s1 > 0) stp.l_s2 = Math.round(sealLenClean);
+
         if (isOrthoInput) {
           const l_brg_cart = 2 * stp.l_s3 + 12;
           stp.l_brg_cart = l_brg_cart;
@@ -6384,41 +6528,83 @@
           stp.L_span = l_brg_cart;
           stp.L_shaft_total = Math.round(stp.l_s1 + stp.l_s2 + l_brg_cart + stp.l_s5 + stp.b_pinion);
           stp.zSteps3D = [];
+        } else if (isPlanetary) {
+          // Coaxial Planetary Input (Sun) & Output (Carrier) shafts: single-end extension only!
+          const gFirst = gearStages[0];
+          const gLast = gearStages[gearStages.length - 1];
+          if (idx === 0) {
+            const zS = gFirst.zPinion || 0;
+            const zS1 = Number((zS - gFirst.b1 * 0.5).toFixed(2));
+            const zS2 = Number((zS + gFirst.b1 * 0.5).toFixed(2));
+            const zBrgIn = -halfWallIn;
+            const zBrgOut = -(halfWallIn + brgJournalExtLen);
+            if (zS1 - zBrgIn > 4) {
+              spacerSleeves3D.push({ id: 'SPACER_IN', z1: zBrgIn, z2: zS1, d_in: stp.d_s3, d_out: dSpacerOut });
+            }
+            stp.zSteps3D = [
+              { id: 'S1_EXT', dia: stp.d_s1, z1: zBrgOut - stp.l_s2 - stp.l_s1, z2: zBrgOut - stp.l_s2, eqDia: `Shaft${idx+1}_ds1` },
+              { id: 'S2_SEAL', dia: stp.d_s2, z1: zBrgOut - stp.l_s2, z2: zBrgOut, eqDia: `Shaft${idx+1}_ds2` },
+              { id: 'S3_BRG_L', dia: stp.d_s3, z1: zBrgOut, z2: zBrgIn, eqDia: `Shaft${idx+1}_ds3`, isBrg: true },
+              ...(zS1 > zBrgIn + 1 ? [{ id: 'S4A_SHOULDER', dia: stp.d_body, z1: zBrgIn, z2: zS1, eqDia: `Shaft${idx+1}_ds3` }] : []),
+              { id: 'S4_INT_PINION', dia: stp.da_pinion, z1: zS1, z2: zS2, eqDia: `Stage1_da1`, isPinion: true }
+            ];
+            stp.L_shaft_total = Math.round(zS2 - (zBrgOut - stp.l_s2 - stp.l_s1));
+          } else {
+            const zC = (gLast.zWheel || 0) + gLast.b2 * 0.5 + 12;
+            const zBrgIn = halfWallIn;
+            const zBrgOut = halfWallIn + brgJournalExtLen;
+            if (zBrgIn - zC > 4) {
+              spacerSleeves3D.push({ id: 'SPACER_OUT', z1: zC, z2: zBrgIn, d_in: stp.d_s3, d_out: dSpacerOut });
+            }
+            stp.zSteps3D = [
+              ...(zBrgIn > zC + 1 ? [{ id: 'S3B_SHOULDER_OUT', dia: stp.d_body, z1: zC, z2: zBrgIn, eqDia: `Shaft${idx+1}_ds3` }] : []),
+              { id: 'S3_BRG_OUT', dia: stp.d_s3, z1: zBrgIn, z2: zBrgOut, eqDia: `Shaft${idx+1}_ds3`, isBrg: true },
+              { id: 'S2_SEAL', dia: stp.d_s2, z1: zBrgOut, z2: zBrgOut + stp.l_s2, eqDia: `Shaft${idx+1}_ds2` },
+              { id: 'S1_EXT', dia: stp.d_s1, z1: zBrgOut + stp.l_s2, z2: zBrgOut + stp.l_s2 + stp.l_s1, eqDia: `Shaft${idx+1}_ds1` }
+            ];
+            stp.L_shaft_total = Math.round((zBrgOut + stp.l_s2 + stp.l_s1) - zC);
+          }
         } else if (idx === 0) {
-          // 1) Parallel / Worm High-Speed Input Integral Pinion Shaft (I轴):
-          //    Segments from -Z (top/left) to +Z (bottom/right):
-          //    ①外伸(d_s1×l_s1) -> ②油封段(d_s2×l_s2) -> ③左轴承颈(d_s3×l_s3) -> ④-A左轴承定位轴肩(d_body×l_shoulder_L)
-          //    -> ④一体小齿轮(da1×b_pinion) -> ④-B右轴承定位轴肩(d_body×l_body) -> ⑤右轴承颈(d_s3×l_s3)
-          const zP = driveGearStg ? (driveGearStg.zPinion || 0) : 0;
+          // 1) Parallel / Worm High-Speed Input Integral Pinion/Worm Shaft (I轴):
+          //    Single-end extension on -Z (Parallel) or -X (Worm); +Z/+X blind end strictly inside Blind End-Cap!
+          const zP = isWormInput ? 0 : (driveGearStg ? (driveGearStg.zPinion || 0) : 0);
           const zP1 = Number((zP - stp.b_pinion * 0.5).toFixed(2));
           const zP2 = Number((zP1 + stp.b_pinion).toFixed(2));
-          stp.l_shoulder_L = Math.max(10, Math.round(halfB_in + zP1));
-          stp.l_body = Math.max(10, Math.round(halfB_in - zP2));
-          const zBrgL_in = Number((zP1 - stp.l_shoulder_L).toFixed(2));
-          const zBrgR_in = Number((zP2 + stp.l_body).toFixed(2));
-          const intSpan0 = stp.l_shoulder_L + stp.b_pinion + stp.l_body;
-          stp.L_span = Math.round(intSpan0 + stp.l_s3);
-          stp.L_shaft_total = Math.round(stp.l_s1 + stp.l_s2 + 2 * stp.l_s3 + intSpan0);
+          const zBrgL_in = -halfWallIn;
+          const zBrgR_in = halfWallIn;
+          stp.l_shoulder_L = Math.max(8, Math.round(zP1 - zBrgL_in));
+          stp.l_body = Math.max(8, Math.round(zBrgR_in - zP2));
+          const zBrgL_out = Number((zBrgL_in - brgJournalExtLen).toFixed(2));
+          const zBrgR_out = Number((zBrgR_in + brgJournalBlindLen).toFixed(2));
+          // Spacer sleeves (定距环/套筒) between bearing inner faces and pinion/worm shoulder
+          const spLenL = Math.min(Math.max(10, Math.round((zP1 - zBrgL_in) * 0.45)), Math.max(0, zP1 - zBrgL_in - 2));
+          const spLenR = Math.min(Math.max(10, Math.round((zBrgR_in - zP2) * 0.45)), Math.max(0, zBrgR_in - zP2 - 2));
+          if (spLenL >= 5) spacerSleeves3D.push({ id: 'SPACER_L', z1: zBrgL_in, z2: Number((zBrgL_in + spLenL).toFixed(2)), d_in: stp.d_body, d_out: dSpacerOut });
+          if (spLenR >= 5) spacerSleeves3D.push({ id: 'SPACER_R', z1: Number((zBrgR_in - spLenR).toFixed(2)), z2: zBrgR_in, d_in: stp.d_body, d_out: dSpacerOut });
+
+          stp.L_span = Math.round(2 * halfWallIn + brgB);
+          stp.L_shaft_total = Math.round((zBrgR_out) - (zBrgL_out - stp.l_s2 - stp.l_s1));
           stp.zSteps3D = [
-            ...(stp.l_s1 > 0 ? [{ id: 'S1_EXT', dia: stp.d_s1, z1: zBrgL_in - stp.l_s3 - stp.l_s2 - stp.l_s1, z2: zBrgL_in - stp.l_s3 - stp.l_s2, eqDia: `Shaft${idx+1}_ds1` }] : []),
-            ...(stp.l_s2 > 0 ? [{ id: 'S2_SEAL', dia: stp.d_s2, z1: zBrgL_in - stp.l_s3 - stp.l_s2, z2: zBrgL_in - stp.l_s3, eqDia: `Shaft${idx+1}_ds2` }] : []),
-            { id: 'S3_BRG_L', dia: stp.d_s3, z1: zBrgL_in - stp.l_s3, z2: zBrgL_in, eqDia: `Shaft${idx+1}_ds3`, isBrg: true },
+            ...(stp.l_s1 > 0 ? [{ id: 'S1_EXT', dia: stp.d_s1, z1: Number((zBrgL_out - stp.l_s2 - stp.l_s1).toFixed(2)), z2: Number((zBrgL_out - stp.l_s2).toFixed(2)), eqDia: `Shaft${idx+1}_ds1` }] : []),
+            ...(stp.l_s2 > 0 ? [{ id: 'S2_SEAL', dia: stp.d_s2, z1: Number((zBrgL_out - stp.l_s2).toFixed(2)), z2: zBrgL_out, eqDia: `Shaft${idx+1}_ds2` }] : []),
+            { id: 'S3_BRG_L', dia: stp.d_s3, z1: zBrgL_out, z2: zBrgL_in, eqDia: `Shaft${idx+1}_ds3`, isBrg: true },
             { id: 'S4A_SHOULDER', dia: stp.d_body, z1: zBrgL_in, z2: zP1, eqDia: `Shaft${idx+1}_ds3` },
             { id: 'S4_INT_PINION', dia: stp.da_pinion, z1: zP1, z2: zP2, eqDia: `Stage1_da1`, isPinion: true },
             { id: 'S5_BODY', dia: stp.d_body, z1: zP2, z2: zBrgR_in, eqDia: `Shaft${idx+1}_ds3` },
-            { id: 'S6_BRG_R', dia: stp.d_s3, z1: zBrgR_in, z2: zBrgR_in + stp.l_s3, eqDia: `Shaft${idx+1}_ds3`, isBrg: true }
+            { id: 'S6_BRG_R', dia: stp.d_s3, z1: zBrgR_in, z2: zBrgR_out, eqDia: `Shaft${idx+1}_ds3`, isBrg: true }
           ];
         } else if (idx < shafts.length - 1) {
-          // 2) Intermediate Integral Gear-Shaft (II轴 / III轴):
-          //    ALL bearings use shaft shoulder positioning (②左轴承定位轴肩 d_body & ⑥右轴承定位轴肩 d_body), ZERO spacer rings!
+          // 2) Intermediate Integral Gear-Shaft (II轴 / III轴): BOTH ends blind inside Blind End-Caps!
           const zP = driveGearStg ? (driveGearStg.zPinion || 0) : 0;
           const zW = drivenGearStg ? (drivenGearStg.zWheel || 0) : 0;
           const isPinionOnLeft = Boolean((drivenGearStg && drivenGearStg.isBevel) || (zP < zW));
           stp.isPinionOnLeft = isPinionOnLeft;
+          const zBrgL_in = -halfWallIn;
+          const zBrgR_in = halfWallIn;
+          const zBrgL_out = Number((zBrgL_in - brgJournalBlindLen).toFixed(2));
+          const zBrgR_out = Number((zBrgR_in + brgJournalBlindLen).toFixed(2));
 
           if (isPinionOnLeft) {
-            // Left (-Z) is Integral Pinion -> Collar -> Right (+Z) is Driven Wheel Seat:
-            // ①左轴承(d_s3) -> ②左轴承定位轴肩(d_body) -> ③一体小轮(da1) -> ④定位轴环(d_s5) -> ⑤大轮配合座(d_s4) -> ⑥右轴承定位轴肩(d_body) -> ⑦右轴承(d_s3)
             const zP1 = Number((zP - stp.b_pinion * 0.5).toFixed(2));
             const zP2 = Number((zP1 + stp.b_pinion).toFixed(2));
             let zW1 = Number((zP2 + stp.l_s5).toFixed(2));
@@ -6431,25 +6617,23 @@
                 zW2 = Number((zW1 + stp.l_wheel_seat).toFixed(2));
               }
             }
-            stp.l_shoulder_L = Math.max(10, Math.round(halfB_in + zP1));
-            stp.l_body = Math.max(10, Math.round(halfB_in - zW2));
-            const zBrgL_in = Number((zP1 - stp.l_shoulder_L).toFixed(2));
-            const zBrgR_in = Number((zW2 + stp.l_body).toFixed(2));
-            const intSpanInter = stp.l_shoulder_L + stp.b_pinion + stp.l_s5 + stp.l_wheel_seat + stp.l_body;
-            stp.L_span = Math.round(intSpanInter + stp.l_s3);
-            stp.L_shaft_total = Math.round(2 * stp.l_s3 + intSpanInter);
+            stp.l_shoulder_L = Math.max(8, Math.round(zP1 - zBrgL_in));
+            stp.l_body = Math.max(8, Math.round(zBrgR_in - zW2));
+            if (zP1 - zBrgL_in >= 6) spacerSleeves3D.push({ id: 'SPACER_L', z1: zBrgL_in, z2: zP1, d_in: stp.d_body, d_out: dSpacerOut });
+            if (zBrgR_in - zW2 >= 6) spacerSleeves3D.push({ id: 'SPACER_R', z1: zW2, z2: zBrgR_in, d_in: stp.d_body, d_out: dSpacerOut });
+
+            stp.L_span = Math.round(2 * halfWallIn + brgB);
+            stp.L_shaft_total = Math.round(zBrgR_out - zBrgL_out);
             stp.zSteps3D = [
-              { id: 'S1_BRG_L', dia: stp.d_s3, z1: zBrgL_in - stp.l_s3, z2: zBrgL_in, eqDia: `Shaft${idx+1}_ds3`, isBrg: true },
+              { id: 'S1_BRG_L', dia: stp.d_s3, z1: zBrgL_out, z2: zBrgL_in, eqDia: `Shaft${idx+1}_ds3`, isBrg: true },
               { id: 'S2_SHOULDER_L', dia: stp.d_body, z1: zBrgL_in, z2: zP1, eqDia: `Shaft${idx+1}_ds3` },
               { id: 'S3_INT_PINION', dia: stp.da_pinion, z1: zP1, z2: zP2, eqDia: `Stage${idx+1}_da1`, isPinion: true },
               { id: 'S4_COLLAR', dia: stp.d_s5, z1: zP2, z2: zW1, eqDia: `Shaft${idx+1}_ds5`, isCollar: true },
               { id: 'S5_WHEEL_SEAT', dia: stp.d_s4, z1: zW1, z2: zW2, eqDia: `Shaft${idx+1}_ds4`, isWheelSeat: true },
               { id: 'S6_BODY', dia: stp.d_body, z1: zW2, z2: zBrgR_in, eqDia: `Shaft${idx+1}_ds3` },
-              { id: 'S7_BRG_R', dia: stp.d_s3, z1: zBrgR_in, z2: zBrgR_in + stp.l_s3, eqDia: `Shaft${idx+1}_ds3`, isBrg: true }
+              { id: 'S7_BRG_R', dia: stp.d_s3, z1: zBrgR_in, z2: zBrgR_out, eqDia: `Shaft${idx+1}_ds3`, isBrg: true }
             ];
           } else {
-            // Left (-Z) is Driven Wheel Seat -> Collar -> Right (+Z) is Integral Pinion (e.g. ZLY / ZSY in image_b8f780.png!):
-            // ①左轴承(d_s3) -> ②左轴承定位轴肩(d_body) -> ③大轮配合座(d_s4) -> ④定位轴环(d_s5) -> ⑤一体小轮(da1) -> ⑥右轴承定位轴肩(d_body) -> ⑦右轴承(d_s3)
             const zP1 = Number((zP - stp.b_pinion * 0.5).toFixed(2));
             const zP2 = Number((zP1 + stp.b_pinion).toFixed(2));
             let zW2 = Number((zW + stp.l_wheel_seat * 0.5).toFixed(2));
@@ -6459,52 +6643,78 @@
               zW2 = Number((zP1 - stp.l_s5).toFixed(2));
             }
             const zW1 = Number((zW2 - stp.l_wheel_seat).toFixed(2));
-            stp.l_shoulder_L = Math.max(10, Math.round(halfB_in + zW1));
-            stp.l_body = Math.max(10, Math.round(halfB_in - zP2));
-            const zBrgL_in = Number((zW1 - stp.l_shoulder_L).toFixed(2));
-            const zBrgR_in = Number((zP2 + stp.l_body).toFixed(2));
-            const intSpanInter = stp.l_shoulder_L + stp.l_wheel_seat + stp.l_s5 + stp.b_pinion + stp.l_body;
-            stp.L_span = Math.round(intSpanInter + stp.l_s3);
-            stp.L_shaft_total = Math.round(2 * stp.l_s3 + intSpanInter);
+            stp.l_shoulder_L = Math.max(8, Math.round(zW1 - zBrgL_in));
+            stp.l_body = Math.max(8, Math.round(zBrgR_in - zP2));
+            if (zW1 - zBrgL_in >= 6) spacerSleeves3D.push({ id: 'SPACER_L', z1: zBrgL_in, z2: zW1, d_in: stp.d_body, d_out: dSpacerOut });
+            if (zBrgR_in - zP2 >= 6) spacerSleeves3D.push({ id: 'SPACER_R', z1: zP2, z2: zBrgR_in, d_in: stp.d_body, d_out: dSpacerOut });
+
+            stp.L_span = Math.round(2 * halfWallIn + brgB);
+            stp.L_shaft_total = Math.round(zBrgR_out - zBrgL_out);
             stp.zSteps3D = [
-              { id: 'S1_BRG_L', dia: stp.d_s3, z1: zBrgL_in - stp.l_s3, z2: zBrgL_in, eqDia: `Shaft${idx+1}_ds3`, isBrg: true },
+              { id: 'S1_BRG_L', dia: stp.d_s3, z1: zBrgL_out, z2: zBrgL_in, eqDia: `Shaft${idx+1}_ds3`, isBrg: true },
               { id: 'S2_SHOULDER_L', dia: stp.d_body, z1: zBrgL_in, z2: zW1, eqDia: `Shaft${idx+1}_ds3` },
               { id: 'S3_WHEEL_SEAT', dia: stp.d_s4, z1: zW1, z2: zW2, eqDia: `Shaft${idx+1}_ds4`, isWheelSeat: true },
               { id: 'S4_COLLAR', dia: stp.d_s5, z1: zW2, z2: zP1, eqDia: `Shaft${idx+1}_ds5`, isCollar: true },
               { id: 'S5_INT_PINION', dia: stp.da_pinion, z1: zP1, z2: zP2, eqDia: `Stage${idx+1}_da1`, isPinion: true },
               { id: 'S6_BODY', dia: stp.d_body, z1: zP2, z2: zBrgR_in, eqDia: `Shaft${idx+1}_ds3` },
-              { id: 'S7_BRG_R', dia: stp.d_s3, z1: zBrgR_in, z2: zBrgR_in + stp.l_s3, eqDia: `Shaft${idx+1}_ds3`, isBrg: true }
+              { id: 'S7_BRG_R', dia: stp.d_s3, z1: zBrgR_in, z2: zBrgR_out, eqDia: `Shaft${idx+1}_ds3`, isBrg: true }
             ];
           }
         } else {
           // 3) Low-Speed Output Shaft (末轴):
-          //    In 3D (image_b8f780.png), the output shaft extension (l_s2 + l_s1) is at the +Z (bottom) end!
-          //    The driven large gear (gLast) is centered at zW, spanning [zW1, zW2].
-          //    Locating collar (Φd_s5 × l_s5) sits flush against the -Z (inner/top) face of the driven gear [zW1 - l_s5, zW1]!
-          //    Output-side bearing locating shoulder (Φd_body × l_shoulder_L) spans [zW2, +B_in/2]!
-          //    Blind-side bearing locating shoulder / transition body (Φd_body × l_body) spans [-B_in/2, zW1 - l_s5]!
+          //    STRICT single-end extension at +Z ONLY! Blind end (-Z) terminates inside Blind End-Cap!
           const zW = drivenGearStg ? (drivenGearStg.zWheel || 0) : 0;
           const zW1 = Number((zW - stp.l_wheel_seat * 0.5).toFixed(2));
           const zW2 = Number((zW1 + stp.l_wheel_seat).toFixed(2));
           const zCol1 = Number((zW1 - stp.l_s5).toFixed(2));
-          stp.l_shoulder_L = Math.max(10, Math.round(halfB_in - zW2));
-          stp.l_body = Math.max(12, Math.round(halfB_in + zCol1));
-          const zBrgBlind_in = Number((zCol1 - stp.l_body).toFixed(2));
-          const zBrgOut_in = Number((zW2 + stp.l_shoulder_L).toFixed(2));
-          const intSpanOut = stp.l_shoulder_L + stp.l_wheel_seat + stp.l_s5 + stp.l_body;
-          stp.L_span = Math.round(intSpanOut + stp.l_s3);
-          stp.L_shaft_total = Math.round(stp.l_s1 + stp.l_s2 + 2 * stp.l_s3 + intSpanOut);
+          const zBrgBlind_in = -halfWallIn;
+          const zBrgOut_in = halfWallIn;
+          stp.l_shoulder_L = Math.max(8, Math.round(zBrgOut_in - zW2));
+          stp.l_body = Math.max(8, Math.round(zCol1 - zBrgBlind_in));
+          const zBrgBlind_out = Number((zBrgBlind_in - brgJournalBlindLen).toFixed(2));
+          const zBrgOut_out = Number((zBrgOut_in + brgJournalExtLen).toFixed(2));
+
+          // Spacer sleeve on output side between wheel hub face (zW2) and output bearing inner face (zBrgOut_in)
+          if (zBrgOut_in - zW2 >= 6) spacerSleeves3D.push({ id: 'SPACER_OUT', z1: zW2, z2: zBrgOut_in, d_in: stp.d_body, d_out: dSpacerOut });
+          // Spacer sleeve on blind side between blind bearing inner face and locating collar (zCol1)
+          const spBlindLen = Math.min(Math.max(10, Math.round((zCol1 - zBrgBlind_in) * 0.45)), Math.max(0, zCol1 - zBrgBlind_in - 2));
+          if (spBlindLen >= 5) spacerSleeves3D.push({ id: 'SPACER_BLIND', z1: zBrgBlind_in, z2: Number((zBrgBlind_in + spBlindLen).toFixed(2)), d_in: stp.d_body, d_out: dSpacerOut });
+
+          stp.L_span = Math.round(2 * halfWallIn + brgB);
+          stp.L_shaft_total = Math.round((zBrgOut_out + stp.l_s2 + stp.l_s1) - zBrgBlind_out);
           stp.zSteps3D = [
-            { id: 'S6_BRG_BLIND', dia: stp.d_s3, z1: zBrgBlind_in - stp.l_s3, z2: zBrgBlind_in, eqDia: `Shaft${idx+1}_ds3`, isBrg: true },
+            { id: 'S6_BRG_BLIND', dia: stp.d_s3, z1: zBrgBlind_out, z2: zBrgBlind_in, eqDia: `Shaft${idx+1}_ds3`, isBrg: true },
             { id: 'S5B_BODY', dia: stp.d_body, z1: zBrgBlind_in, z2: zCol1, eqDia: `Shaft${idx+1}_ds3` },
             { id: 'S5_COLLAR', dia: stp.d_s5, z1: zCol1, z2: zW1, eqDia: `Shaft${idx+1}_ds5`, isCollar: true },
             { id: 'S4_WHEEL_SEAT', dia: stp.d_s4, z1: zW1, z2: zW2, eqDia: `Shaft${idx+1}_ds4`, isWheelSeat: true },
             { id: 'S3B_SHOULDER_OUT', dia: stp.d_body, z1: zW2, z2: zBrgOut_in, eqDia: `Shaft${idx+1}_ds3` },
-            { id: 'S3_BRG_OUT', dia: stp.d_s3, z1: zBrgOut_in, z2: zBrgOut_in + stp.l_s3, eqDia: `Shaft${idx+1}_ds3`, isBrg: true },
-            ...(stp.l_s2 > 0 ? [{ id: 'S2_SEAL', dia: stp.d_s2, z1: zBrgOut_in + stp.l_s3, z2: zBrgOut_in + stp.l_s3 + stp.l_s2, eqDia: `Shaft${idx+1}_ds2` }] : []),
-            ...(stp.l_s1 > 0 ? [{ id: 'S1_EXT', dia: stp.d_s1, z1: zBrgOut_in + stp.l_s3 + stp.l_s2, z2: zBrgOut_in + stp.l_s3 + stp.l_s2 + stp.l_s1, eqDia: `Shaft${idx+1}_ds1` }] : [])
+            { id: 'S3_BRG_OUT', dia: stp.d_s3, z1: zBrgOut_in, z2: zBrgOut_out, eqDia: `Shaft${idx+1}_ds3`, isBrg: true },
+            ...(stp.l_s2 > 0 ? [{ id: 'S2_SEAL', dia: stp.d_s2, z1: zBrgOut_out, z2: Number((zBrgOut_out + stp.l_s2).toFixed(2)), eqDia: `Shaft${idx+1}_ds2` }] : []),
+            ...(stp.l_s1 > 0 ? [{ id: 'S1_EXT', dia: stp.d_s1, z1: Number((zBrgOut_out + stp.l_s2).toFixed(2)), z2: Number((zBrgOut_out + stp.l_s2 + stp.l_s1).toFixed(2)), eqDia: `Shaft${idx+1}_ds1` }] : [])
           ];
         }
+
+        // Attach unified axial assembly metadata for Three.js & SolidWorks (bearings, spacers, adjusting rings, end caps, oil seals, bolt holes)
+        stp.spacerSleeves3D = spacerSleeves3D;
+        sh.endCapLayout = {
+          halfWallIn,
+          halfBossOut,
+          brgB,
+          brgD: sh.brg.D,
+          brg_d: sh.brg.d,
+          adjW,
+          capFlangeT,
+          spigotLen: Math.max(4, Number((halfBossOut - (halfWallIn + brgB + adjW)).toFixed(2))),
+          D_boss: sh.bearingBoss.D_boss,
+          D2_cap: sh.bearingBoss.D2_cap,
+          D0_screw: sh.bearingBoss.D0_screw,
+          d3_screw: d3_sc,
+          boltCount,
+          tapDrillDia,
+          clearanceHoleDia,
+          extSign,
+          oilSeal: sh.oilSeal
+        };
       });
 
       // Exact Radial X Envelope across ALL stages (prevents large middle or final stage wheels from ever touching left/right walls!)
@@ -6644,24 +6854,42 @@
         const sh1 = shafts[0];
         const stp1 = sh1.stepped;
         const halfL_in = L_in * 0.5;
+        const bossProtrudeW = (sh1.bearingBoss && sh1.bearingBoss.delta_protrude) ? sh1.bearingBoss.delta_protrude : delta_boss_protrude;
+        const halfBossOutW = Number((halfL_in + delta + bossProtrudeW).toFixed(2));
+        const brgBW = Number(sh1.brg.B.toFixed(2));
+        const adjWW = Math.max(3, Math.min(5, Math.round(brgBW * 0.14)));
+        const brgBlindLenW = Math.max(brgBW - 1.5, Math.min(halfBossOutW - halfL_in - 3, brgBW));
+        const brgExtLenW = Math.max(brgBW + 2, Number((halfBossOutW - halfL_in).toFixed(2)));
         const xP1 = Number((-stp1.b_pinion * 0.5).toFixed(2));
         const xP2 = Number((stp1.b_pinion * 0.5).toFixed(2));
-        stp1.l_shoulder_L = Math.max(10, Math.round(halfL_in + xP1));
-        stp1.l_body = Math.max(10, Math.round(halfL_in - xP2));
-        const xBrgL_in = Number((xP1 - stp1.l_shoulder_L).toFixed(2));
-        const xBrgR_in = Number((xP2 + stp1.l_body).toFixed(2));
-        const intSpanWorm = stp1.l_shoulder_L + stp1.b_pinion + stp1.l_body;
-        stp1.L_span = Math.round(intSpanWorm + stp1.l_s3);
-        stp1.L_shaft_total = Math.round(stp1.l_s1 + stp1.l_s2 + 2 * stp1.l_s3 + intSpanWorm);
+        const xBrgL_in = -halfL_in;
+        const xBrgR_in = halfL_in;
+        const xBrgL_out = Number((xBrgL_in - brgExtLenW).toFixed(2));
+        const xBrgR_out = Number((xBrgR_in + brgBlindLenW).toFixed(2));
+        stp1.l_shoulder_L = Math.max(8, Math.round(xP1 - xBrgL_in));
+        stp1.l_body = Math.max(8, Math.round(xBrgR_in - xP2));
+        stp1.L_span = Math.round(L_in + brgBW);
+        stp1.L_shaft_total = Math.round(xBrgR_out - (xBrgL_out - stp1.l_s2 - stp1.l_s1));
+        const dSpacerW = Math.min(Math.floor(sh1.brg.D - 10), Math.max(stp1.d_s3 + 8, snapToStd(stp1.d_s3 + Math.round(stp1.d_s3 * 0.22), STD_SHAFT_DIAMETERS)));
+        const spLenWL = Math.min(Math.max(10, Math.round((xP1 - xBrgL_in) * 0.45)), Math.max(0, xP1 - xBrgL_in - 2));
+        const spLenWR = Math.min(Math.max(10, Math.round((xBrgR_in - xP2) * 0.45)), Math.max(0, xBrgR_in - xP2 - 2));
+        stp1.spacerSleeves3D = [];
+        if (spLenWL >= 5) stp1.spacerSleeves3D.push({ id: "SPACER_L", z1: xBrgL_in, z2: Number((xBrgL_in + spLenWL).toFixed(2)), d_in: stp1.d_body, d_out: dSpacerW });
+        if (spLenWR >= 5) stp1.spacerSleeves3D.push({ id: "SPACER_R", z1: Number((xBrgR_in - spLenWR).toFixed(2)), z2: xBrgR_in, d_in: stp1.d_body, d_out: dSpacerW });
         stp1.zSteps3D = [
-          ...(stp1.l_s1 > 0 ? [{ id: 'S1_EXT', dia: stp1.d_s1, z1: xBrgL_in - stp1.l_s3 - stp1.l_s2 - stp1.l_s1, z2: xBrgL_in - stp1.l_s3 - stp1.l_s2, eqDia: 'Shaft1_ds1' }] : []),
-          ...(stp1.l_s2 > 0 ? [{ id: 'S2_SEAL', dia: stp1.d_s2, z1: xBrgL_in - stp1.l_s3 - stp1.l_s2, z2: xBrgL_in - stp1.l_s3, eqDia: 'Shaft1_ds2' }] : []),
-          { id: 'S3_BRG_L', dia: stp1.d_s3, z1: xBrgL_in - stp1.l_s3, z2: xBrgL_in, eqDia: 'Shaft1_ds3', isBrg: true },
-          { id: 'S4A_SHOULDER', dia: stp1.d_body, z1: xBrgL_in, z2: xP1, eqDia: 'Shaft1_ds3' },
-          { id: 'S4_INT_PINION', dia: stp1.da_pinion, z1: xP1, z2: xP2, eqDia: 'Stage1_da1', isPinion: true },
-          { id: 'S5_BODY', dia: stp1.d_body, z1: xP2, z2: xBrgR_in, eqDia: 'Shaft1_ds3' },
-          { id: 'S6_BRG_R', dia: stp1.d_s3, z1: xBrgR_in, z2: xBrgR_in + stp1.l_s3, eqDia: 'Shaft1_ds3', isBrg: true }
+          ...(stp1.l_s1 > 0 ? [{ id: "S1_EXT", dia: stp1.d_s1, z1: Number((xBrgL_out - stp1.l_s2 - stp1.l_s1).toFixed(2)), z2: Number((xBrgL_out - stp1.l_s2).toFixed(2)), eqDia: "Shaft1_ds1" }] : []),
+          ...(stp1.l_s2 > 0 ? [{ id: "S2_SEAL", dia: stp1.d_s2, z1: Number((xBrgL_out - stp1.l_s2).toFixed(2)), z2: xBrgL_out, eqDia: "Shaft1_ds2" }] : []),
+          { id: "S3_BRG_L", dia: stp1.d_s3, z1: xBrgL_out, z2: xBrgL_in, eqDia: "Shaft1_ds3", isBrg: true },
+          { id: "S4A_SHOULDER", dia: stp1.d_body, z1: xBrgL_in, z2: xP1, eqDia: "Shaft1_ds3" },
+          { id: "S4_INT_PINION", dia: stp1.da_pinion, z1: xP1, z2: xP2, eqDia: "Stage1_da1", isPinion: true },
+          { id: "S5_BODY", dia: stp1.d_body, z1: xP2, z2: xBrgR_in, eqDia: "Shaft1_ds3" },
+          { id: "S6_BRG_R", dia: stp1.d_s3, z1: xBrgR_in, z2: xBrgR_out, eqDia: "Shaft1_ds3", isBrg: true }
         ];
+        if (sh1.endCapLayout) {
+          sh1.endCapLayout.halfWallIn = halfL_in;
+          sh1.endCapLayout.halfBossOut = halfBossOutW;
+          sh1.endCapLayout.spigotLen = Math.max(4, Number((halfBossOutW - (halfL_in + brgBW + adjWW)).toFixed(2)));
+        }
       }
 
       let xArcL = firstCoverCC.xRelCenter;
@@ -7970,8 +8198,305 @@
     // =========================================================================
     // 4. UI RENDERING & DOM UPDATES (Focus-Safe for Decimal Typing!)
     // =========================================================================
-    function updateAllUI() {
+    function updateCalcActionBadges() {
+      const mainBadge = document.getElementById('mainCalcStatusBadge');
+      const mainBtn = document.getElementById('btnRunMainCalc');
+      if (mainBadge) {
+        if (state.mainInterferenceBlocked) {
+          mainBadge.className = 'px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40';
+          mainBadge.textContent = '⚠ 存在干涉';
+        } else if (state.mainParamsDirty) {
+          mainBadge.className = 'px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40';
+          mainBadge.textContent = '● 待计算';
+        } else {
+          mainBadge.className = 'px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+          mainBadge.textContent = '✓ 已计算';
+        }
+      }
+      if (mainBtn) {
+        mainBtn.classList.toggle('ring-2', Boolean(state.mainParamsDirty || state.mainInterferenceBlocked));
+        mainBtn.classList.toggle('ring-amber-400/70', Boolean(state.mainParamsDirty && !state.mainInterferenceBlocked));
+        mainBtn.classList.toggle('ring-rose-400/80', Boolean(state.mainInterferenceBlocked));
+      }
+
+      const gearBadge = document.getElementById('gearCalcStatusBadge');
+      const gearBtn = document.getElementById('btnCalcGearModule');
+      if (gearBadge) {
+        if (state.gearParamsDirty) {
+          gearBadge.className = 'px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40';
+          gearBadge.textContent = '● 齿轮参数已修改 · 点击计算生成报告';
+        } else if (!state.gearReportVisible) {
+          gearBadge.className = 'px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30';
+          gearBadge.textContent = '待点击计算以显示计算报告';
+        } else {
+          gearBadge.className = 'px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+          gearBadge.textContent = '✓ 计算报告已生成';
+        }
+      }
+      if (gearBtn) {
+        gearBtn.classList.toggle('ring-2', Boolean(state.gearParamsDirty || !state.gearReportVisible));
+        gearBtn.classList.toggle('ring-amber-400/70', Boolean(state.gearParamsDirty || !state.gearReportVisible));
+      }
+
+      const brgBadge = document.getElementById('bearingCalcStatusBadge');
+      const brgBtn = document.getElementById('btnCalcBearingLife');
+      const brgNotice = document.getElementById('bearingPendingNotice');
+      if (brgBadge) {
+        if (state.bearingParamsDirty) {
+          brgBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40';
+          brgBadge.textContent = '● 参数已修改 · 待点击计算';
+        } else {
+          brgBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+          brgBadge.textContent = '✓ 轴承校核结果已同步';
+        }
+      }
+      if (brgBtn) {
+        brgBtn.classList.toggle('ring-2', Boolean(state.bearingParamsDirty));
+        brgBtn.classList.toggle('ring-amber-400/70', Boolean(state.bearingParamsDirty));
+      }
+      if (brgNotice) {
+        brgNotice.classList.toggle('hidden', !state.bearingParamsDirty);
+      }
+    }
+
+    function renderGearReportPlaceholder() {
+      const reportContainer = document.getElementById('calcReportPreviewContainer');
+      const gearRemedyEl = document.getElementById('gearRemedyPanel');
+      if (gearRemedyEl) {
+        gearRemedyEl.classList.add('hidden');
+        gearRemedyEl.innerHTML = '';
+      }
+      if (reportContainer) {
+        const msg = state.gearParamsDirty
+          ? '您已自定义调整齿轮参数，请点击上方【计算齿轮参数并显示报告】按钮执行校核并生成最新计算报告。'
+          : '完成齿轮几何与变位参数设置后，请点击上方【计算齿轮参数并显示报告】按钮生成详细计算报告与强度诊断。';
+        reportContainer.innerHTML = `
+          <div class="py-10 px-6 text-center space-y-3 bg-slate-900/40 rounded-lg border border-dashed border-slate-700">
+            <div class="w-10 h-10 mx-auto rounded-full bg-teal-500/15 border border-teal-500/40 text-teal-300 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <div class="text-sm font-bold text-slate-200">计算报告待生成</div>
+            <p class="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">${msg}</p>
+            <button type="button" onclick="document.getElementById('btnCalcGearModule') && document.getElementById('btnCalcGearModule').click()" class="px-4 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow transition">
+              立即计算并显示报告
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    function syncSidebarControlsOnly() {
+      const activeEl = document.activeElement;
+      const isWorm = (state.orientation === 'orthogonal' && state.stages === 1 && state.orthoType === 'worm');
+      const isPlanetary = (state.orientation === 'planetary');
+
+      const orthoPanel = document.getElementById('orthoSubtypePanel');
+      const wormPosRow = document.getElementById('wormPositionRow');
+      const stageWormHint = document.getElementById('stageWormHint');
+      const planPanel = document.getElementById('planetarySubtypePanel');
+      if (state.orientation === 'orthogonal') {
+        if (orthoPanel) orthoPanel.classList.remove('hidden');
+        if (planPanel) planPanel.classList.add('hidden');
+        if (isWorm) {
+          if (wormPosRow) wormPosRow.classList.remove('hidden');
+          if (stageWormHint) stageWormHint.classList.remove('hidden');
+        } else {
+          if (wormPosRow) wormPosRow.classList.add('hidden');
+          if (stageWormHint) stageWormHint.classList.add('hidden');
+        }
+      } else if (isPlanetary) {
+        if (orthoPanel) orthoPanel.classList.add('hidden');
+        if (planPanel) planPanel.classList.remove('hidden');
+      } else {
+        if (orthoPanel) orthoPanel.classList.add('hidden');
+        if (planPanel) planPanel.classList.add('hidden');
+      }
+
+      ['wrapRatio2', 'wrapCenter2', 'wrapBeta2', 'wrapHand2'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.opacity = state.stages >= 2 ? '1' : '0.3';
+      });
+      ['wrapRatio3', 'wrapCenter3', 'wrapBeta3', 'wrapHand3'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.opacity = state.stages >= 3 ? '1' : '0.3';
+      });
+
+      const lblCenter1 = document.getElementById('lblCenter1');
+      const lblBeta1 = document.getElementById('lblBeta1');
+      const lblModule1 = document.getElementById('lblModule1');
+      if (isWorm) {
+        if (lblCenter1) lblCenter1.textContent = '蜗杆中心距 a1';
+        if (lblBeta1) lblBeta1.textContent = '导程角 γ (°)';
+        if (lblModule1) lblModule1.textContent = '蜗杆模数 m1';
+      } else if (state.orientation === 'orthogonal') {
+        if (lblCenter1) lblCenter1.textContent = '第1级外锥距 Re1';
+        if (lblBeta1) lblBeta1.textContent = '锥齿螺旋角 βm';
+        if (lblModule1) lblModule1.textContent = '锥齿大端模数 mte1';
+      } else {
+        if (lblCenter1) lblCenter1.textContent = '第1级中心距 a1';
+        if (lblBeta1) lblBeta1.textContent = '第1级螺旋角 β1';
+        if (lblModule1) lblModule1.textContent = '第1级法向模数 mn1';
+      }
+
+      for (let s = 1; s <= 3; s++) {
+        const activeStage = s <= state.stages;
+        const rInp = document.getElementById(`stageRatio${s}`);
+        const cInp = document.getElementById(`stageCenter${s}`);
+        const bInp = document.getElementById(`stageBeta${s}`);
+        const mInp = document.getElementById(`stageModule${s}`);
+        const hSel = document.getElementById(`stageHand${s}`);
+
+        if (rInp) {
+          rInp.disabled = !(state.customStageRatios && activeStage);
+          if (activeEl !== rInp && activeStage && state.userStageRatios[s - 1] !== undefined) {
+            rInp.value = Number(state.userStageRatios[s - 1]).toFixed(2);
+          }
+        }
+        if (cInp) {
+          cInp.disabled = !(state.customStageCenters && activeStage);
+          if (activeEl !== cInp && activeStage && state.userStageCenters[s - 1] !== undefined) {
+            cInp.value = state.userStageCenters[s - 1];
+          }
+        }
+        if (bInp) {
+          bInp.disabled = !(state.customStageBetas && activeStage);
+          if (activeEl !== bInp && activeStage && state.userStageBetas[s - 1] !== undefined) {
+            bInp.value = state.userStageBetas[s - 1];
+          }
+        }
+        if (mInp) {
+          mInp.disabled = !(state.customStageModules && activeStage);
+          if (activeEl !== mInp && activeStage && state.userStageModules[s - 1] !== undefined) {
+            mInp.value = state.userStageModules[s - 1];
+          }
+        }
+        if (hSel) {
+          hSel.disabled = !(state.customHelixHands && activeStage);
+          if (activeEl !== hSel && activeStage && state.userPinionHands[s - 1]) {
+            hSel.value = state.userPinionHands[s - 1];
+          }
+        }
+      }
+
+      const ratioInpEl = document.getElementById('inputRatio');
+      if (ratioInpEl && activeEl !== ratioInpEl) ratioInpEl.value = state.ratio;
+      const lockedTargetEl = document.getElementById('lblLockedTargetRatio');
+      if (lockedTargetEl) lockedTargetEl.textContent = Number(state.ratio).toFixed(2);
+      const prodRatio = state.userStageRatios.slice(0, state.stages).reduce((acc, v) => acc * (Number(v) || 1), 1.0);
+      const prodEl = document.getElementById('lblProductRatio');
+      if (prodEl) prodEl.textContent = prodRatio.toFixed(2);
+
+      const chkSR = document.getElementById('toggleCustomStageRatios');
+      if (chkSR && activeEl !== chkSR) chkSR.checked = Boolean(state.customStageRatios);
+      const chkSC = document.getElementById('toggleCustomStageCenters');
+      if (chkSC && activeEl !== chkSC) chkSC.checked = Boolean(state.customStageCenters);
+      const chkSB = document.getElementById('toggleCustomStageBetas');
+      if (chkSB && activeEl !== chkSB) chkSB.checked = Boolean(state.customStageBetas);
+      const chkSM = document.getElementById('toggleCustomStageModules');
+      if (chkSM && activeEl !== chkSM) chkSM.checked = Boolean(state.customStageModules);
+      const ratioAct = document.getElementById('customRatioActions');
+      if (ratioAct) ratioAct.classList.toggle('hidden', !state.customStageRatios);
+      const centerAct = document.getElementById('customCenterActions');
+      if (centerAct) centerAct.classList.toggle('hidden', !state.customStageCenters);
+    }
+
+    function markMainParamsDirty() {
+      state.mainParamsDirty = true;
+      state.mainInterferenceBlocked = false;
+      updateCalcActionBadges();
+    }
+
+    function markGearParamsDirty() {
+      state.gearParamsDirty = true;
+      state.gearReportVisible = false;
+      renderGearReportPlaceholder();
+      updateCalcActionBadges();
+    }
+
+    function markBearingParamsDirty() {
+      state.bearingParamsDirty = true;
+      updateCalcActionBadges();
+    }
+
+    function renderInterferenceDiagnosticsUI(d, forceOpenModal) {
+      const interCard = document.getElementById('shaftInterferenceCard');
+      const interTitle = document.getElementById('shaftInterferenceTitle');
+      const interDetails = document.getElementById('shaftInterferenceDetails');
+      const interModal = document.getElementById('interferenceWarningModal');
+      const interModalBody = document.getElementById('interferenceModalBody');
+      const alertBox = document.getElementById('interferenceAlertBox');
+      const alertText = document.getElementById('interferenceAlertText');
+
+      const hasCollision = (d.shaftInterferences && d.shaftInterferences.length > 0) || (d.warnings && d.warnings.length > 0);
+
+      if (alertBox && alertText) {
+        if (d.warnings && d.warnings.length > 0) {
+          alertBox.classList.remove('hidden');
+          alertText.innerHTML = d.warnings.map(w => `<div>• ${w}</div>`).join('');
+        } else {
+          alertBox.classList.add('hidden');
+        }
+      }
+
+      if (interCard && interDetails) {
+        if (hasCollision) {
+          interCard.classList.remove('hidden');
+          const totalErrCount = d.shaftInterferences.length + d.warnings.length;
+          interTitle.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> ⚠ 检测到 ${totalErrCount} 处空间干涉或尺寸超限！`;
+          const failedChecksHtml = d.clearanceChecks.filter(ck => !ck.isPass).map(ck => `
+            <div class="flex items-center justify-between gap-2 py-0.5 border-b border-slate-800/50">
+              <span class="text-slate-300">${ck.label}</span>
+              <span class="font-bold text-rose-400">净空 Δ=${ck.gap}mm (&lt;${ck.minSafe}mm 干涉!)</span>
+            </div>
+          `).join('');
+          const errMsgsHtml = d.shaftInterferences.map(it =>
+            `<div class="text-rose-200 bg-rose-950/60 border border-rose-500/40 rounded px-2 py-1 mt-1">${it.msg}</div>`
+          ).join('') + d.warnings.map(w =>
+            `<div class="text-amber-200 bg-amber-500/15 border border-amber-500/40 rounded px-2 py-1 mt-1">• ${w}</div>`
+          ).join('');
+          interDetails.innerHTML = failedChecksHtml + errMsgsHtml;
+
+          if (interModal && interModalBody) {
+            interModalBody.innerHTML = failedChecksHtml + errMsgsHtml;
+            if (forceOpenModal) {
+              const curSig = d.shaftInterferences.map(i => i.msg).join('|') + '||' + d.warnings.join('|');
+              state.lastPopupInterferenceSig = curSig;
+              interModal.classList.remove('hidden');
+            }
+          }
+        } else {
+          interCard.classList.add('hidden');
+          interDetails.innerHTML = '';
+          state.lastPopupInterferenceSig = '';
+          if (interModal) interModal.classList.add('hidden');
+        }
+      }
+      return hasCollision;
+    }
+
+    function runMainCalculationWithInterferenceGate() {
       const d = calculateGearboxDesign();
+      const hasCollision = renderInterferenceDiagnosticsUI(d, true);
+      if (hasCollision) {
+        state.mainInterferenceBlocked = true;
+        updateCalcActionBadges();
+        showToast('⚠ 干涉检测未通过：已弹出干涉警告，请先调整参数或点击【一键自动消解干涉】后再生成预览图！');
+        return false;
+      }
+      state.mainParamsDirty = false;
+      state.mainInterferenceBlocked = false;
+      state.gearParamsDirty = false;
+      state.bearingParamsDirty = false;
+      updateAllUI({ skipInterferenceModal: true, precomputedDesign: d });
+      updateCalcActionBadges();
+      showToast('✓ 干涉检测通过！已完成自动配齿并刷新 3D 装配图、2D 工程图及全部参数。');
+      return true;
+    }
+
+    function updateAllUI(opts = {}) {
+      const d = opts.precomputedDesign || calculateGearboxDesign();
       const h = d.housing;
       const activeEl = document.activeElement;
 
@@ -8147,6 +8672,20 @@
       if (chkSB && activeEl !== chkSB) chkSB.checked = Boolean(state.customStageBetas);
       const chkSM = document.getElementById("toggleCustomStageModules");
       if (chkSM && activeEl !== chkSM) chkSM.checked = Boolean(state.customStageModules);
+      const chkHH = document.getElementById("toggleCustomHelixHands");
+      if (chkHH && activeEl !== chkHH) chkHH.checked = Boolean(state.customHelixHands);
+      const chkCM = document.getElementById("toggleCustomMount");
+      if (chkCM && activeEl !== chkCM) chkCM.checked = Boolean(state.customMount);
+      document.querySelectorAll('.mount-input').forEach(inp => {
+        inp.disabled = !state.customMount;
+        if (state.customMount) {
+          inp.classList.remove('bg-slate-950/60', 'border-slate-800', 'text-slate-300');
+          inp.classList.add('bg-slate-950', 'border-sky-500/50', 'text-white');
+        } else {
+          inp.classList.add('bg-slate-950/60', 'border-slate-800', 'text-slate-300');
+          inp.classList.remove('bg-slate-950', 'border-sky-500/50', 'text-white');
+        }
+      });
       document.getElementById("customRatioActions").classList.toggle("hidden", !state.customStageRatios);
       document.getElementById("customCenterActions").classList.toggle("hidden", !state.customStageCenters);
 
@@ -8177,49 +8716,8 @@
         hbNote.textContent = `工业标准机型 (${d.codeName}): ${stageSummary}`;
       }
 
-      // Update Real-Time Inter-Shaft & Gear Interference Diagnostic Card & Auto Warning Modal
-      // Requirement: If no interference, DO NOT display the interference window at all; if interference occurs, pop up a warning window!
-      const interCard = document.getElementById('shaftInterferenceCard');
-      const interTitle = document.getElementById('shaftInterferenceTitle');
-      const interDetails = document.getElementById('shaftInterferenceDetails');
-      const interModal = document.getElementById('interferenceWarningModal');
-      const interModalBody = document.getElementById('interferenceModalBody');
-
-      const hasCollision = (d.shaftInterferences && d.shaftInterferences.length > 0) || (d.warnings && d.warnings.length > 0);
-      if (interCard && interDetails) {
-        if (hasCollision) {
-          interCard.classList.remove('hidden');
-          const totalErrCount = d.shaftInterferences.length + d.warnings.length;
-          interTitle.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> ⚠ 检测到 ${totalErrCount} 处空间干涉或尺寸超限！`;
-          const failedChecksHtml = d.clearanceChecks.filter(ck => !ck.isPass).map(ck => `
-            <div class="flex items-center justify-between gap-2 py-0.5 border-b border-slate-800/50">
-              <span class="text-slate-300">${ck.label}</span>
-              <span class="font-bold text-rose-400">净空 Δ=${ck.gap}mm (&lt;${ck.minSafe}mm 干涉!)</span>
-            </div>
-          `).join('');
-          const errMsgsHtml = d.shaftInterferences.map(it =>
-            `<div class="text-rose-200 bg-rose-950/60 border border-rose-500/40 rounded px-2 py-1 mt-1">${it.msg}</div>`
-          ).join('') + d.warnings.map(w =>
-            `<div class="text-amber-200 bg-amber-500/15 border border-amber-500/40 rounded px-2 py-1 mt-1">• ${w}</div>`
-          ).join('');
-          interDetails.innerHTML = failedChecksHtml + errMsgsHtml;
-
-          if (interModal && interModalBody) {
-            interModalBody.innerHTML = failedChecksHtml + errMsgsHtml;
-            const curSig = d.shaftInterferences.map(i => i.msg).join('|') + '||' + d.warnings.join('|');
-            if (curSig && curSig !== state.lastPopupInterferenceSig) {
-              state.lastPopupInterferenceSig = curSig;
-              interModal.classList.remove('hidden');
-            }
-          }
-        } else {
-          // Completely hide the interference window when there is NO interference!
-          interCard.classList.add('hidden');
-          interDetails.innerHTML = '';
-          state.lastPopupInterferenceSig = '';
-          if (interModal) interModal.classList.add('hidden');
-        }
-      }
+      // Update Inter-Shaft & Gear Interference Diagnostic Card (Modal only opens when triggered by Calculate button)
+      renderInterferenceDiagnosticsUI(d, Boolean(opts.triggerInterferenceModal));
 
       // Top bar & KPI badges
       document.getElementById('badgeCodeName').textContent = d.codeName;
@@ -8287,15 +8785,19 @@
       document.getElementById('hudDelta').textContent = h.delta;
       document.getElementById('hudMountLW').textContent = `${h.L_mount}×${h.W_mount}`;
 
-      // Mounting inputs sync
-      if (!state.customMount) {
-        document.getElementById('mountL').value = h.L_mount;
-        document.getElementById('mountW').value = h.W_mount;
-        document.getElementById('mountHCenter').value = h.H_center;
-        document.getElementById('mountBoltSpec').value = h.d_f;
-        document.getElementById('mountDin').value = d.shafts[0].d_ext;
-        document.getElementById('mountDout').value = d.shafts[d.shafts.length - 1].d_ext;
-      }
+      // Mounting inputs sync (focus-safe so values populate cleanly even when customMount is checked by default)
+      const mPairs = [
+        ['mountL', state.customMount ? state.userMount.L_mount : h.L_mount],
+        ['mountW', state.customMount ? state.userMount.W_mount : h.W_mount],
+        ['mountHCenter', state.customMount ? state.userMount.H_center : h.H_center],
+        ['mountBoltSpec', state.customMount ? state.userMount.boltSpec : h.d_f],
+        ['mountDin', state.customMount ? state.userMount.d_in : d.shafts[0].d_ext],
+        ['mountDout', state.customMount ? state.userMount.d_out : d.shafts[d.shafts.length - 1].d_ext]
+      ];
+      mPairs.forEach(([mid, mval]) => {
+        const mel = document.getElementById(mid);
+        if (mel && activeEl !== mel && mval !== undefined) mel.value = mval;
+      });
 
       // Interference alert
       const alertBox = document.getElementById('interferenceAlertBox');
@@ -8316,6 +8818,7 @@
       rebuild3DGearboxScene(d);
       draw2DBlueprint(d);
       if (typeof drawStandardOilLevelSchematic === 'function') drawStandardOilLevelSchematic(d);
+      updateCalcActionBadges();
     }
 
     function renderModelingDimensionsTab(d) {
@@ -11410,6 +11913,336 @@ ${xrefOffset}
       showToast(`已生成并导出 PDF 计算报告: ${safeCode}_减速器设计计算报告.pdf`);
     }
 
+    function gcdInt(a, b) {
+      let x = Math.abs(Math.round(a || 0));
+      let y = Math.abs(Math.round(b || 0));
+      while (y !== 0) {
+        const t = x % y;
+        x = y;
+        y = t;
+      }
+      return x || 1;
+    }
+
+    function generateSmartToothCandidates(d, sIdx) {
+      if (!d || !d.gearStages || !d.gearStages[sIdx]) return [];
+      const g = d.gearStages[sIdx];
+      const a_cur = g.a_or_Re;
+      const u_target = g.i_target || g.i_actual || 3.0;
+      const betaDeg = g.beta || 0;
+      const cosB = Math.cos((betaDeg * Math.PI) / 180);
+
+      const rawSpecs = [];
+      const seenKeys = new Set();
+      const pushSpec = (mn, z1, z2, extra = {}) => {
+        const mnVal = Number(Number(mn).toFixed(3));
+        const z1Int = Math.round(z1);
+        const z2Int = Math.round(z2);
+        const qKey = extra.qWorm ? `_q${extra.qWorm}` : '';
+        const key = `${mnVal}_${z1Int}_${z2Int}${qKey}`;
+        if (seenKeys.has(key)) return;
+        seenKeys.add(key);
+        rawSpecs.push({ mn: mnVal, z1: z1Int, z2: z2Int, ...extra });
+      };
+
+      // Always include current active tooth configuration so user can compare directly
+      pushSpec(g.mn, g.z1, g.z2, g.isWorm ? { qWorm: g.qWorm } : {});
+
+      if (g.isBevel) {
+        // Orthogonal Spiral/Straight Bevel: enumerate pinion tooth counts & prefer coprime pairs
+        const z1List = [15, 16, 17, 19, 21, 23, 25];
+        z1List.forEach(z1Cand => {
+          const z2Base = Math.max(z1Cand + 2, Math.round(z1Cand * u_target));
+          let bestZ2 = z2Base;
+          let bestScore = -1e9;
+          for (const dz of [0, 1, -1, 2, -2]) {
+            const z2Try = z2Base + dz;
+            if (z2Try < z1Cand + 2) continue;
+            const err = Math.abs((z2Try / z1Cand - u_target) / u_target) * 100;
+            if (err > 6.5) continue;
+            const coprime = gcdInt(z1Cand, z2Try) === 1 ? 1 : 0;
+            const sc = coprime * 20 - err * 4;
+            if (sc > bestScore) {
+              bestScore = sc;
+              bestZ2 = z2Try;
+            }
+          }
+          const mte = Number(((2 * a_cur) / Math.sqrt(z1Cand * z1Cand + bestZ2 * bestZ2)).toFixed(3));
+          if (mte >= 1.2 && mte <= 40) {
+            pushSpec(mte, z1Cand, bestZ2);
+          }
+        });
+      } else if (g.isWorm) {
+        // Single-stage Worm Drive: enumerate z1 ∈ {1, 2, 4} & best (m, q) close to a_cur
+        const z1Options = u_target <= 15 ? [4, 2] : (u_target <= 32 ? [2, 1, 4] : [1, 2]);
+        z1Options.forEach(z1Cand => {
+          const z2Cand = Math.max(24, Math.min(80, Math.round(z1Cand * u_target)));
+          const matches = [];
+          for (const m of STD_MODULES) {
+            for (const q of STD_WORM_Q) {
+              const a0 = 0.5 * m * (q + z2Cand);
+              const diff = Math.abs(a0 - a_cur);
+              if (diff <= m * 1.2) {
+                matches.push({ m, q, diff });
+              }
+            }
+          }
+          matches.sort((a, b) => a.diff - b.diff);
+          matches.slice(0, 2).forEach(mt => pushSpec(mt.m, z1Cand, z2Cand, { qWorm: mt.q }));
+        });
+      } else if (g.isPlanetary) {
+        // 2K-H Planetary: enumerate surrounding standard modules & enforce concentricity + assembly
+        const np = Math.max(3, Math.min(5, Number(state.planetCount) || 3));
+        const p_rs = Math.max(1.8, u_target - 1.0);
+        let baseIdx = STD_MODULES.findIndex(m => m >= g.mn);
+        if (baseIdx < 0) baseIdx = STD_MODULES.length - 1;
+        for (let off = -2; off <= 2; off++) {
+          const idx = baseIdx + off;
+          if (idx < 0 || idx >= STD_MODULES.length) continue;
+          const mnCand = STD_MODULES[idx];
+          const z_sp_sum = Math.round((2 * a_cur * cosB) / mnCand);
+          if (z_sp_sum < 32 || z_sp_sum > 140) continue;
+          const zs0 = Math.max(14, Math.round((2 * z_sp_sum) / (p_rs + 1)));
+          let bestPlan = null;
+          let bestSc = -1e9;
+          for (let dZ = -6; dZ <= 6; dZ++) {
+            const zs = zs0 + dZ;
+            const zp = z_sp_sum - zs;
+            const zr = zs + 2 * zp;
+            if (zs < 14 || zp < 12 || (zs + zr) % np !== 0) continue;
+            const iAct = 1 + zr / zs;
+            const err = Math.abs((iAct - u_target) / u_target) * 100;
+            if (err > 7.5) continue;
+            const cop = gcdInt(zs, zp) === 1 ? 1 : 0;
+            const sc = cop * 15 - err * 4;
+            if (sc > bestSc) {
+              bestSc = sc;
+              bestPlan = { zs, zp, zr };
+            }
+          }
+          if (bestPlan) pushSpec(mnCand, bestPlan.zs, bestPlan.zr, { zp: bestPlan.zp });
+        }
+      } else {
+        // Parallel-Axis Cylindrical Spur/Helical: enumerate 5-6 standard modules around current mn
+        let baseIdx = STD_MODULES.findIndex(m => m >= g.mn);
+        if (baseIdx < 0) baseIdx = STD_MODULES.length - 1;
+        for (let off = -2; off <= 3; off++) {
+          const idx = baseIdx + off;
+          if (idx < 0 || idx >= STD_MODULES.length) continue;
+          const mnCand = STD_MODULES[idx];
+          const zSumMax = Math.floor((2 * a_cur * cosB) / mnCand + 1e-6);
+          if (zSumMax < 34 || zSumMax > 220) continue;
+          let bestPair = null;
+          let bestSc = -1e9;
+          for (const dSum of [0, -1]) {
+            const zSum = zSumMax + dSum;
+            if (zSum < 34) continue;
+            const z1Base = Math.max(16, Math.round(zSum / (1 + u_target)));
+            for (const dz1 of [0, 1, -1, 2, -2]) {
+              const z1 = z1Base + dz1;
+              const z2 = zSum - z1;
+              if (z1 < 16 || z2 < z1 + 2) continue;
+              const err = Math.abs((z2 / z1 - u_target) / u_target) * 100;
+              if (err > 6.0) continue;
+              const cop = gcdInt(z1, z2) === 1 ? 1 : 0;
+              // Prefer coprime, low ratio error, and non-negative shift (dSum===0)
+              const sc = cop * 22 - err * 5 + (dSum === 0 ? 3 : 0);
+              if (sc > bestSc) {
+                bestSc = sc;
+                bestPair = { z1, z2 };
+              }
+            }
+          }
+          if (bestPair) pushSpec(mnCand, bestPair.z1, bestPair.z2);
+        }
+      }
+
+      // Dry-run evaluate every candidate with the exact gearbox design engine so SH, SF, εγ, xn1/xn2 match 100%!
+      const savedMicro = JSON.parse(JSON.stringify(state.gearMicroCustom[sIdx]));
+      const savedCustomMod = state.customStageModules;
+      const savedUserMod = state.userStageModules[sIdx];
+      const savedDesign = state.design;
+
+      const evaluated = [];
+      try {
+        for (const spec of rawSpecs) {
+          const mCfg = state.gearMicroCustom[sIdx];
+          mCfg.enabled = true;
+          mCfg.autoShift = true;
+          mCfg.customSpanK = false;
+          mCfg.mn = spec.mn;
+          mCfg.z1 = spec.z1;
+          mCfg.z2 = spec.z2;
+          if (spec.qWorm) mCfg.qWorm = spec.qWorm;
+          if (g.isBevel) {
+            mCfg.bevelInputTarget = 'de2';
+            mCfg.priorityMode = 'lock_a_solve_x';
+            mCfg.mmn_input = undefined;
+          } else {
+            mCfg.priorityMode = 'lock_a_solve_x';
+          }
+          state.userStageModules[sIdx] = spec.mn;
+
+          const simD = calculateGearboxDesign();
+          const stg = simD && simD.gearStages ? simD.gearStages[sIdx] : null;
+          if (!stg) continue;
+          const st = (stg.machining && stg.machining.strength) ? stg.machining.strength : { SH: 1.0, SF1: 1.0, SF2: 1.0 };
+          const sr = stg.shiftRec || {};
+          const SH = Number(st.SH || 0);
+          const SF1 = Number(st.SF1 || 0);
+          const SF2 = Number(st.SF2 || 0);
+          const SFmin = Number(Math.min(SF1, SF2).toFixed(2));
+          const epsGamma = Number((sr.eps_gamma || (stg.isBevel ? 2.1 : 2.2)).toFixed(2));
+          const errPct = Number((Math.abs((stg.i_actual - u_target) / u_target) * 100).toFixed(2));
+          const noUndercut = (sr.noUndercut1 !== false && sr.noUndercut2 !== false);
+          const isCoprime = stg.isPlanetary ? (gcdInt(stg.z1, stg.zp || 1) === 1) : (gcdInt(stg.z1, stg.z2) === 1);
+          const strengthPass = (SH >= 1.05 && SFmin >= 1.25 && noUndercut);
+          const isCurrent = (Math.abs(stg.mn - g.mn) < 0.015 && stg.z1 === g.z1 && stg.z2 === g.z2);
+
+          const compScore =
+            (strengthPass ? 45 : 0) +
+            (isCoprime ? 18 : 0) +
+            Math.min(SH, 2.2) * 12 +
+            Math.min(SFmin, 3.0) * 8 +
+            Math.min(epsGamma, 4.0) * 6 -
+            errPct * 4.5;
+
+          evaluated.push({
+            stageIdx: sIdx,
+            mn: stg.mn,
+            z1: stg.z1,
+            z2: stg.z2,
+            zp: stg.zp || null,
+            qWorm: stg.qWorm || spec.qWorm || null,
+            isBevel: stg.isBevel,
+            isWorm: stg.isWorm,
+            isPlanetary: stg.isPlanetary,
+            i_actual: Number(stg.i_actual.toFixed(3)),
+            errPct,
+            xn1: Number((stg.xn1 || 0).toFixed(3)),
+            xn2: Number((stg.xn2 || 0).toFixed(3)),
+            epsGamma,
+            SH: Number(SH.toFixed(2)),
+            SF1: Number(SF1.toFixed(2)),
+            SF2: Number(SF2.toFixed(2)),
+            SFmin,
+            isCoprime,
+            noUndercut,
+            strengthPass,
+            isCurrent,
+            compScore
+          });
+        }
+      } finally {
+        state.gearMicroCustom[sIdx] = savedMicro;
+        state.customStageModules = savedCustomMod;
+        state.userStageModules[sIdx] = savedUserMod;
+        state.design = savedDesign;
+      }
+
+      // Deduplicate evaluated results by (mn, z1, z2)
+      const uniqMap = new Map();
+      evaluated.forEach(item => {
+        const k = `${item.mn}_${item.z1}_${item.z2}_${item.qWorm || ''}`;
+        if (!uniqMap.has(k)) uniqMap.set(k, item);
+      });
+      const list = Array.from(uniqMap.values());
+
+      // Sort by selected criterion
+      const sortMode = state.toothCandSortMode || 'comprehensive';
+      if (sortMode === 'strength') {
+        list.sort((a, b) => (b.SH + b.SFmin * 0.8) - (a.SH + a.SFmin * 0.8));
+      } else if (sortMode === 'contact_ratio') {
+        list.sort((a, b) => b.epsGamma - a.epsGamma || b.compScore - a.compScore);
+      } else if (sortMode === 'ratio_err') {
+        list.sort((a, b) => a.errPct - b.errPct || b.compScore - a.compScore);
+      } else {
+        list.sort((a, b) => b.compScore - a.compScore);
+      }
+
+      return list.slice(0, 5);
+    }
+
+    function renderToothCandidatesTable(d) {
+      const tbody = document.getElementById('toothCandidatesTableBody');
+      const titleEl = document.getElementById('toothCandTitle');
+      const ctxBadge = document.getElementById('toothCandContextBadge');
+      if (!tbody || !d || !d.gearStages) return;
+
+      const sIdx = Math.min(state.activeMicroStageIdx || 0, d.gearStages.length - 1);
+      const g = d.gearStages[sIdx];
+      if (!g) return;
+
+      if (titleEl) {
+        titleEl.textContent = `多方案智能配齿候选表（第 ${sIdx + 1} 级 · ${g.isBevel ? '螺旋锥齿轮' : (g.isWorm ? '蜗轮蜗杆' : (g.isPlanetary ? '2K-H行星齿轮' : '平行轴圆柱齿轮'))}）`;
+      }
+      if (ctxBadge) {
+        ctxBadge.textContent = `锁定 ${g.isBevel ? 'Re' : 'a'}=${g.a_or_Re}mm · 目标 i=${g.i_target.toFixed(2)} · 优先互质`;
+      }
+
+      const cands = generateSmartToothCandidates(d, sIdx);
+      state.lastToothCandidates = cands;
+
+      if (!cands.length) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-4 text-center text-slate-400">当前中心距与速比下未检索到额外标准配齿候选方案，可微调中心距或螺旋角后重试。</td></tr>`;
+        return;
+      }
+
+      const maxSHIdx = cands.reduce((best, c, i) => (c.SH + c.SFmin > cands[best].SH + cands[best].SFmin ? i : best), 0);
+      const maxEpsIdx = cands.reduce((best, c, i) => (c.epsGamma > cands[best].epsGamma ? i : best), 0);
+
+      tbody.innerHTML = cands.map((c, idx) => {
+        const tags = [];
+        if (idx === 0) tags.push('<span class="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[10px] font-bold">★ 推荐</span>');
+        if (c.isCurrent) tags.push('<span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-semibold">当前方案</span>');
+        if (idx === maxSHIdx && idx !== 0) tags.push('<span class="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 text-[10px]">高强度</span>');
+        if (idx === maxEpsIdx && idx !== 0) tags.push('<span class="px-1.5 py-0.5 rounded bg-teal-500/15 text-teal-300 text-[10px]">高重合度</span>');
+
+        const teethStr = c.isPlanetary
+          ? `z<sub>s</sub>=${c.z1} / z<sub>p</sub>=${c.zp} / z<sub>r</sub>=${c.z2}`
+          : (c.isWorm ? `z₁=${c.z1} / z₂=${c.z2} <span class="text-slate-400">(q=${c.qWorm})</span>` : `${c.z1} / ${c.z2}`);
+        const coprimeBadge = c.isCoprime
+          ? '<span class="ml-1 px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-[10px] font-semibold" title="齿数互质，轮齿均匀磨损">互质</span>'
+          : '<span class="ml-1 px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]" title="存在公约数">非互质</span>';
+
+        const shCls = c.SH >= 1.05 ? 'text-emerald-300' : 'text-rose-400 font-bold';
+        const sfCls = c.SFmin >= 1.25 ? 'text-emerald-300' : 'text-rose-400 font-bold';
+        const ucHtml = c.noUndercut
+          ? '<span class="text-[10px] text-emerald-400 ml-1">✓</span>'
+          : '<span class="text-[10px] text-rose-400 ml-1" title="低于防根切下限">⚠根切</span>';
+
+        return `
+          <tr class="${c.isCurrent ? 'bg-indigo-500/10' : 'hover:bg-slate-900/70'} transition">
+            <td class="py-2 px-2.5">
+              <div class="flex flex-wrap items-center gap-1">
+                <span class="font-bold text-slate-200 mono">#${idx + 1}</span>
+                ${tags.join('')}
+              </div>
+            </td>
+            <td class="py-2 px-2 text-right mono font-semibold text-white">${c.mn}</td>
+            <td class="py-2 px-2 text-center mono text-slate-200">${teethStr}${coprimeBadge}</td>
+            <td class="py-2 px-2 text-right mono">
+              <span class="text-white">${c.i_actual.toFixed(2)}</span>
+              <span class="text-[10px] ${c.errPct <= 2.5 ? 'text-emerald-400' : 'text-amber-300'}">(${c.errPct.toFixed(1)}%)</span>
+            </td>
+            <td class="py-2 px-2 text-center mono text-slate-300">${c.xn1} / ${c.xn2}${ucHtml}</td>
+            <td class="py-2 px-2 text-right mono font-semibold text-sky-300">${c.epsGamma.toFixed(2)}</td>
+            <td class="py-2 px-2 text-right mono">
+              <span class="${shCls}">${c.SH.toFixed(2)}</span>
+              <span class="text-slate-500">/</span>
+              <span class="${sfCls}">${c.SFmin.toFixed(2)}</span>
+            </td>
+            <td class="py-2 px-2.5 text-center">
+              ${c.isCurrent
+                ? '<span class="px-2 py-1 rounded bg-slate-800 text-slate-400 text-[11px] font-medium">已选用</span>'
+                : `<button type="button" data-apply-tooth-cand="${idx}" class="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold shadow-sm transition">一键选用</button>`
+              }
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
     function renderGearShaftReportTab(d) {
       document.getElementById('materialSpecBadge').textContent = `${d.matInfo.name} · ρ=${d.isWormDrive ? (d.matInfo.shaftDensity + '/' + d.matInfo.wormRimDensity) : d.matInfo.wheelDensity} g/cm³ · [σ_H]=${d.isWormDrive ? d.matInfo.wormSigmaH : d.matInfo.sigmaH} MPa · [σ_F]=${d.matInfo.sigmaF || 400} MPa`;
 
@@ -11910,7 +12743,12 @@ ${xrefOffset}
         }
       }
 
-      // Render In-App Calculation Report Preview
+      // Render Multi-Scheme Smart Tooth-Matching Candidate Table for Active Stage
+      if (typeof renderToothCandidatesTable === 'function') {
+        renderToothCandidatesTable(d);
+      }
+
+      // Render In-App Calculation Report Preview (Only after user clicks the Gear Module Calculate button)
       const reportContainer = document.getElementById('calcReportPreviewContainer');
       if (reportContainer) {
         const curFilter = state.reportFilterMode || 'all';
@@ -11926,6 +12764,10 @@ ${xrefOffset}
             btn.className = 'report-filter-btn px-2.5 py-1 rounded text-slate-400 hover:text-white';
           }
         });
+        if (!state.gearReportVisible) {
+          renderGearReportPlaceholder();
+          return;
+        }
         reportContainer.innerHTML = buildCalculationReportHTML(d, curFilter);
       }
 
@@ -12356,12 +13198,8 @@ ${xrefOffset}
       return entries;
     }
 
-    function generateSolidWorksVBAMacro(d, saveDirOptions) {
+    function generateSolidWorksVBAMacro(d) {
       const h = d.housing;
-      const saveDirMode = (saveDirOptions && saveDirOptions.mode) || state.swSaveDirMode || 'prompt';
-      const customSaveDir = saveDirOptions && saveDirOptions.customBaseDir !== undefined
-        ? saveDirOptions.customBaseDir
-        : (state.swCustomSaveDir || '');
       const cc = h.castCoverTangent;
       const wt = h.weldedCoverTrap;
       const cFlangeM = (h.c_flange_protrude / 1000).toFixed(5);
@@ -12432,7 +13270,7 @@ ${xrefOffset}
             Part.SketchManager.AddToDB = False
             LinkSketchCircleDimToEq Part, swEqMgr, skSeg, ${(xFromCenter).toFixed(5)}, ${(yFromSplit).toFixed(5)}, ${(rBoss).toFixed(5)}, """${sp}_D_boss"""
             Set myFeature = Part.FeatureManager.FeatureExtrusion2(False, False, False, 0, 0, ${halfBossSpanZ}, ${halfBossSpanZ}, False, False, False, False, 0, 0, False, False, False, False, True, True, True, 0, 0, False)
-            LinkFeatureDepthToEq swEqMgr, myFeature, "(""B_in"" / 2 + ""L_boss"")"
+            ' Note: keep exact per-shaft halfBossSpanZ (B_in/2 + delta + sh.bearingBoss.delta_protrude) so Bearing End-Caps sit 100% flush with zero interference!
             SafeCloseSketch Part
         End If
 
@@ -12880,16 +13718,42 @@ ${xrefOffset}
             Set myFeature = ${buildXSpanExtrudeVBA(xBrgStartM, lenSealM)}
             SafeCloseSketch Part
         End If
-        ' --- 轴段①: 联轴器外伸配合轴段 (Φ${stp.d_s1}mm × ${stp.l_s1}mm) ---
+        ' --- 轴段①: 联轴器外伸配合轴段 (Φ${stp.d_s1}mm × ${stp.l_s1}mm, 含轴端45°倒角 C${(stp.d_s1 <= 30 ? 1.5 : (stp.d_s1 <= 65 ? 2.0 : 3.0))}) ---
         If SelectStdPlane(Part, 3) Then
             Part.SketchManager.InsertSketch True
             Part.SketchManager.AddToDB = True
             Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${r_s1})
             Part.SketchManager.AddToDB = False
             LinkSketchCircleDimToEq Part, swEqMgr, skSeg, 0, 0, ${r_s1}, """${sp}_ds1"""
-            Set myFeature = ${buildXSpanExtrudeVBA(xSealStartM, lenExtM)}
+            Set myFeature = ${buildXSpanExtrudeVBA(xSealStartM, (Math.max(4, stp.l_s1 - (stp.d_s1 <= 30 ? 1.5 : (stp.d_s1 <= 65 ? 2.0 : 3.0))) / 1000).toFixed(5))}
             SafeCloseSketch Part
-        End If` + (stp.shaftType === 'hollow_key' && stp.d_hollow_bore > 0 ? `
+        End If
+        ' --- 外伸轴端 45° 倒角 (通过45°拔模拉伸实现, 100%稳定无选边风险) ---
+        If SelectStdPlane(Part, 3) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${r_s1})
+            Part.SketchManager.AddToDB = False
+            Set myFeature = Part.FeatureManager.FeatureExtrusion2(True, False, True, 0, 0, ${((stp.d_s1 <= 30 ? 1.5 : (stp.d_s1 <= 65 ? 2.0 : 3.0)) / 1000).toFixed(5)}, 0.005, True, False, False, False, 0.785398, 0, False, False, False, False, True, True, True, 3, ${Math.abs(xExtStartM + (stp.d_s1 <= 30 ? 1.5 : (stp.d_s1 <= 65 ? 2.0 : 3.0)) / 1000).toFixed(5)}, True)
+            SafeCloseSketch Part
+        End If` + ((!sh.isSplineShaft && !sh.isHollowShaft && stp.l_s1 > 16) ? (() => {
+          const kwO = lookupKeywayFull(stp.d_s1);
+          const lKeyO = snapGB1096KeyLength(Math.max(12, stp.l_s1 - 12));
+          const xKeyRightM = 0.5 * (xSealStartM + xExtStartM) + (lKeyO / 2000);
+          const halfBO = (kwO.b / 2000).toFixed(5);
+          const yBotO = ((stp.d_s1 * 0.5 - kwO.t1) / 1000).toFixed(5);
+          const yTopO = ((stp.d_s1 * 0.5 + 3.0) / 1000).toFixed(5);
+          return `
+        ' --- 外伸段国标平键槽 GB/T 1096 (键 ${kwO.b}×${kwO.h}×${lKeyO}mm, 轴槽深 t1=${kwO.t1}mm) ---
+        If SelectStdPlane(Part, 3) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Part.SketchManager.CreateCornerRectangle -${halfBO}, ${yBotO}, 0, ${halfBO}, ${yTopO}, 0
+            Part.SketchManager.AddToDB = False
+            Set myFeature = Part.FeatureManager.FeatureCut3(True, False, True, 0, 0, ${(lKeyO / 1000).toFixed(5)}, 0.005, False, False, False, False, 0, 0, False, False, False, False, False, True, True, True, True, False, 3, ${Math.abs(xKeyRightM).toFixed(5)}, ${xKeyRightM < 0 ? 'True' : 'False'})
+            SafeCloseSketch Part
+        End If`;
+        })() : '') + (stp.shaftType === 'hollow_key' && stp.d_hollow_bore > 0 ? `
         ' --- 正交输入轴空心通孔切除 (Φ${stp.d_hollow_bore}mm H7 贯穿内孔) ---
         If SelectStdPlane(Part, 3) Then
             Part.SketchManager.InsertSketch True
@@ -12912,15 +13776,101 @@ ${xrefOffset}
           const zAllMin = zSteps.length > 0 ? Math.min(...zSteps.map(s => s.z1)) : zBrgMin;
           const zAllMax = zSteps.length > 0 ? Math.max(...zSteps.map(s => s.z2)) : zBrgMax;
           const maxAbsZ = ((Math.max(Math.abs(zAllMin), Math.abs(zAllMax)) + 30) / 1000).toFixed(5);
+          // CRITICAL: Set exact bounding-box center (bxShaft, byShaft, bzShaft) for SolidWorks AddComponent5!
+          // For lr_worm (Plane 3 YZ extruded along X), the bounding-box center is along X; for fb_split (Plane 1 XY extruded along Z), along Z!
+          if (bType === 'lr_worm') {
+            bxShaft = 0.5 * (zAllMin + zAllMax) / 1000;
+            byShaft = yFromSplit;
+            bzShaft = 0;
+          } else {
+            bxShaft = xFromCenter;
+            byShaft = yFromSplit;
+            bzShaft = 0.5 * (zAllMin + zAllMax) / 1000;
+          }
 
-          // Build individual step extrusions for every non-bearing segment in zSteps (shoulders d_body, wheel seat d_s4, collar d_s5, integral pinion da1, seal d_s2, extension d_s1)
+          // Build individual step extrusions for every non-bearing segment in zSteps
+          // + 45° outer shaft-end chamfer (C1.5~C3) on S1_EXT via reliable 45° draft extrusion
+          // + GB/T 1096-2003 flat keyways (b×h×L, depth t1) on S1_EXT and Wheel Seat (S3/S4/S5_WHEEL_SEAT)!
           const stepExtrudeBlocks = zSteps
             .filter(s => !s.isBrg && (s.z2 - s.z1) > 0.5)
             .map(s => {
               const rSegM = (s.dia / 2000).toFixed(5);
               const zMidMm = 0.5 * (s.z1 + s.z2);
               const wSegMm = s.z2 - s.z1;
+              if (s.id === 'S1_EXT' && wSegMm > 10) {
+                const cCh = s.dia <= 30 ? 1.5 : (s.dia <= 65 ? 2.0 : 3.0);
+                const isNegEnd = (zMidMm < 0);
+                const bodyZ1 = isNegEnd ? (s.z1 + cCh) : s.z1;
+                const bodyZ2 = isNegEnd ? s.z2 : (s.z2 - cCh);
+                const bodyExtCall = buildZSpanExtrudeVBA(0.5 * (bodyZ1 + bodyZ2), bodyZ2 - bodyZ1);
+                const tipStartM = (isNegEnd ? bodyZ1 : bodyZ2) / 1000;
+                const tipOffM = Math.abs(tipStartM).toFixed(5);
+                const tipFlip = (tipStartM < 0) ? 'True' : 'False';
+                const tipDir = isNegEnd ? 'True' : 'False';
+                let kwCutExtVBA = '';
+                if (!sh.isSplineShaft && !sh.isHollowShaft && wSegMm > 16) {
+                  const kwE = lookupKeywayFull(s.dia);
+                  const lKeyE = snapGB1096KeyLength(Math.max(12, wSegMm - 10));
+                  const kStartM = (zMidMm - lKeyE * 0.5) / 1000;
+                  const kOffM = Math.abs(kStartM).toFixed(5);
+                  const kFlip = (kStartM < 0) ? 'True' : 'False';
+                  const x1K = (cx - kwE.b / 2000).toFixed(5);
+                  const x2K = (cx + kwE.b / 2000).toFixed(5);
+                  const y1K = (cy + (s.dia * 0.5 - kwE.t1) / 1000).toFixed(5);
+                  const y2K = (cy + (s.dia * 0.5 + 3.0) / 1000).toFixed(5);
+                  kwCutExtVBA = `
+        ' --- 外伸段国标平键槽 GB/T 1096 (键 ${kwE.b}×${kwE.h}×${lKeyE}mm, 轴槽深 t1=${kwE.t1}mm) ---
+        If SelectStdPlane(Part, ${planeId}) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Part.SketchManager.CreateCornerRectangle ${x1K}, ${y1K}, 0, ${x2K}, ${y2K}, 0
+            Part.SketchManager.AddToDB = False
+            Set myFeature = Part.FeatureManager.FeatureCut3(True, False, False, 0, 0, ${(lKeyE / 1000).toFixed(5)}, 0.005, False, False, False, False, 0, 0, False, False, False, False, False, True, True, True, True, False, 3, ${kOffM}, ${kFlip})
+            SafeCloseSketch Part
+        End If`;
+                }
+                return `
+        ' --- 轴段 [${s.id}]: Φ${s.dia}mm × ${wSegMm.toFixed(1)}mm (含轴端45°倒角 C${cCh}) ---
+        If SelectStdPlane(Part, ${planeId}) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(${cx.toFixed(5)}, ${cy.toFixed(5)}, 0, ${rSegM})
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${bodyExtCall}
+            SafeCloseSketch Part
+        End If
+        If SelectStdPlane(Part, ${planeId}) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(${cx.toFixed(5)}, ${cy.toFixed(5)}, 0, ${rSegM})
+            Part.SketchManager.AddToDB = False
+            Set myFeature = Part.FeatureManager.FeatureExtrusion2(True, False, ${tipDir}, 0, 0, ${(cCh / 1000).toFixed(5)}, 0.005, True, False, False, False, 0.785398, 0, False, False, False, False, True, True, True, 3, ${tipOffM}, ${tipFlip})
+            SafeCloseSketch Part
+        End If` + kwCutExtVBA;
+              }
               const extCall = buildZSpanExtrudeVBA(zMidMm, wSegMm);
+              let kwCutWheelSeatVBA = '';
+              if (s.isWheelSeat && wSegMm > 14) {
+                const kwW = lookupKeywayFull(s.dia);
+                const lKeyW = snapGB1096KeyLength(Math.max(12, wSegMm - 6));
+                const kStartM = (zMidMm - lKeyW * 0.5) / 1000;
+                const kOffM = Math.abs(kStartM).toFixed(5);
+                const kFlip = (kStartM < 0) ? 'True' : 'False';
+                const x1K = (cx - kwW.b / 2000).toFixed(5);
+                const x2K = (cx + kwW.b / 2000).toFixed(5);
+                const y1K = (cy + (s.dia * 0.5 - kwW.t1) / 1000).toFixed(5);
+                const y2K = (cy + (s.dia * 0.5 + 3.0) / 1000).toFixed(5);
+                kwCutWheelSeatVBA = `
+        ' --- 大齿轮配合段国标平键槽 GB/T 1096 (键 ${kwW.b}×${kwW.h}×${lKeyW}mm, 轴槽深 t1=${kwW.t1}mm, 与大轮轮毂键槽100%对齐) ---
+        If SelectStdPlane(Part, ${planeId}) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Part.SketchManager.CreateCornerRectangle ${x1K}, ${y1K}, 0, ${x2K}, ${y2K}, 0
+            Part.SketchManager.AddToDB = False
+            Set myFeature = Part.FeatureManager.FeatureCut3(True, False, False, 0, 0, ${(lKeyW / 1000).toFixed(5)}, 0.005, False, False, False, False, 0, 0, False, False, False, False, False, True, True, True, True, False, 3, ${kOffM}, ${kFlip})
+            SafeCloseSketch Part
+        End If`;
+              }
               return `
         ' --- 轴段 [${s.id}]: Φ${s.dia}mm × ${wSegMm.toFixed(1)}mm (Z: ${s.z1.toFixed(1)} ~ ${s.z2.toFixed(1)}mm) ---
         If SelectStdPlane(Part, ${planeId}) Then
@@ -12930,7 +13880,7 @@ ${xrefOffset}
             Part.SketchManager.AddToDB = False
             Set myFeature = ${extCall}
             SafeCloseSketch Part
-        End If`;
+        End If` + kwCutWheelSeatVBA;
             }).join('');
 
           shaftFeatureVBA = `
@@ -13060,7 +14010,24 @@ ${xrefOffset}
             Part.SketchManager.AddToDB = False
             Set myFeature = Part.FeatureManager.FeatureCut3(False, False, False, 0, 0, W_base, W_base, False, False, False, False, 0, 0, False, False, False, False, False, True, True, True, True, False, 0, 0, False)
             SafeCloseSketch Part
+        End If` + (() => {
+          const dHubBore = sh2.stepped.d_s4 || gb2.d_bore;
+          const kwHub = lookupKeywayFull(dHubBore);
+          const x1H = (x2 - kwHub.b / 2000).toFixed(5);
+          const x2H = (x2 + kwHub.b / 2000).toFixed(5);
+          const y1H = (y2 + (dHubBore * 0.5 - 2.0) / 1000).toFixed(5);
+          const y2H = (y2 + (dHubBore * 0.5 + kwHub.t2) / 1000).toFixed(5);
+          return `
+        ' --- 切除从动大齿轮轮毂内孔国标平键槽 GB/T 1096 (键宽 b=${kwHub.b}mm, 轮毂槽深 t2=${kwHub.t2}mm) ---
+        If SelectStdPlane(Part, 1) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Part.SketchManager.CreateCornerRectangle ${x1H}, ${y1H}, 0, ${x2H}, ${y2H}, 0
+            Part.SketchManager.AddToDB = False
+            Set myFeature = Part.FeatureManager.FeatureCut3(False, False, False, 0, 0, W_base, W_base, False, False, False, False, 0, 0, False, False, False, False, False, True, True, True, True, False, 0, 0, False)
+            SafeCloseSketch Part
         End If`;
+        })();
 
         individualWheelParts.push({
           sIdx: sIdx + 1,
@@ -13091,8 +14058,499 @@ ${xrefOffset}
       const p4y = (icy - halfInspL * ty + inspT * ny).toFixed(5);
       const halfInspW = ((cc.inspWidth * 0.5) / 1000).toFixed(5);
 
+      // =========================================================================
+      // 3B. Extra Mechanical Sub-Assembly Parts:
+      //     (1) Rolling Bearings + Spacer Sleeves (定距环/套筒) + Adjusting Rings (调整环)
+      //     (2) Bearing End-Caps (透盖 & 闷盖) with Circular Bolt Clearance Holes & Oil Seal Counterbore
+      //     (3) GB/T 13871.1 TC Skeleton Oil Seals (骨架油封)
+      //     (4) Full 2K-H Planetary Gearbox Parts (Cylindrical Housing, Fixed Ring Gear, Sun Shaft, Np Planet Gears, Double-Wall Carrier)
+      // =========================================================================
+      const buildSpanExtrudeOnPlane = (planeId, centerMm, widthMm, isCut = false) => {
+        const cmd = isCut ? 'FeatureCut3' : 'FeatureExtrusion2';
+        const tailCut = isCut
+          ? 'False, False, False, False, False, True, True, True, True, False'
+          : 'False, False, False, False, True, True, True';
+        if (Math.abs(centerMm) < 0.05) {
+          const halfM = (widthMm / 2000).toFixed(5);
+          return `Part.FeatureManager.${cmd}(False, False, False, 0, 0, ${halfM}, ${halfM}, False, False, False, False, 0, 0, ${tailCut}, 0, 0, False)`;
+        }
+        const startM = (centerMm - widthMm * 0.5) / 1000;
+        const lenM = (widthMm / 1000).toFixed(5);
+        if (Math.abs(startM) < 0.00005) {
+          return `Part.FeatureManager.${cmd}(True, False, False, 0, 0, ${lenM}, 0.005, False, False, False, False, 0, 0, ${tailCut}, 0, 0, False)`;
+        }
+        const offM = Math.abs(startM).toFixed(5);
+        const flipOff = (startM < 0) ? 'True' : 'False';
+        return `Part.FeatureManager.${cmd}(True, False, False, 0, 0, ${lenM}, 0.005, False, False, False, False, 0, 0, ${tailCut}, 3, ${offM}, ${flipOff})`;
+      };
+
+      // Helper to build a hollow ring/annulus on Plane 1 (XY->Z) or Plane 3 (YZ->X)
+      const buildRingVBA = (planeId, cxM, cyM, rOutM, rInM, centerMm, widthMm, comment) => `
+        ' --- ${comment} ---
+        SafeCloseSketch Part
+        If SelectStdPlane(Part, ${planeId}) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(${cxM.toFixed(5)}, ${cyM.toFixed(5)}, 0, ${rOutM.toFixed(5)})
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(${cxM.toFixed(5)}, ${cyM.toFixed(5)}, 0, ${rInM.toFixed(5)})
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(planeId, centerMm, widthMm, false)}
+            SafeCloseSketch Part
+        End If`;
+
+      // Collect per-shaft Bearings + Spacers + Adjusting Rings, End-Caps, and Oil Seals
+      const auxBearingSpacerParts = [];
+      const auxEndCapParts = [];
+      const auxOilSealParts = [];
+
+      d.shafts.forEach((sh, idx) => {
+        const ec = sh.endCapLayout;
+        if (!ec) return;
+        const stp = sh.stepped;
+        const bType = sh.bearingBoss.bossWallType || 'fb_split';
+        const isXAxis = (bType === 'left_ortho' || bType === 'lr_worm');
+        const planeId = isXAxis ? 3 : 1;
+        const xFromCenter = ((sh.coordX + h.leftOriginOffset) - h.L_in / 2) / 1000;
+        const yFromSplit = (sh.coordY) / 1000;
+        const cxM = isXAxis ? 0 : xFromCenter;
+        const cyM = yFromSplit;
+
+        // Which ends have bearings/end-caps:
+        // - left_ortho: only -1 (-X end)
+        // - planetary: Input (idx===0) only -1 (-Z end); Output (last) only +1 (+Z end)
+        // - parallel / orthogonal II,III / worm: both -1 and +1
+        let endSigns = [-1, 1];
+        if (bType === 'left_ortho') endSigns = [-1];
+        else if (d.isPlanetary) endSigns = (idx === 0) ? [-1] : ((idx === d.shafts.length - 1) ? [1] : []);
+        if (endSigns.length === 0) return;
+
+        // 1) INDEPENDENT Parts: Rolling Bearings (滚动轴承), Spacer Sleeves (定距环/轴套), and Adjusting Rings (调整环)
+        const rBrgOutM = ec.brgD / 2000;
+        const rBrgInM = ec.brg_d / 2000;
+        const rAdjOutM = (ec.brgD - 1.0) / 2000;
+        const rAdjInM = Math.max(rBrgInM + 0.002, (ec.brgD * 0.72) / 2000);
+
+        if (bType === 'left_ortho') {
+          const g1 = d.gearStages[0];
+          const x2Mm = (d.shafts[1].coordX + h.leftOriginOffset) - h.L_in / 2;
+          const xPinLargeMm = x2Mm - g1.d2 * 0.5;
+          const xCollarStartMm = xPinLargeMm - stp.l_s5;
+          const xBrg1Mid = xCollarStartMm - ec.brgB * 0.5 - 1;
+          const xBrg2Mid = xBrg1Mid - ec.brgB - (sh.bearingBoss.l_inter_spacer || 12);
+          const xSpacerMid = 0.5 * (xBrg1Mid + xBrg2Mid);
+          const spW = Math.max(4, (sh.bearingBoss.l_inter_spacer || 12));
+          const xAdjMid = xBrg2Mid - ec.brgB * 0.5 - ec.adjW * 0.5;
+
+          auxBearingSpacerParts.push({
+            fileName: `11_Bearing_In_Shaft${idx + 1}_${safeCode}.SLDPRT`,
+            title: `${sh.name}内列滚动轴承(${sh.brg.code})`,
+            bx: (xBrg1Mid / 1000).toFixed(5), by: cyM.toFixed(5), bz: '0.00000',
+            vba: buildRingVBA(3, 0, cyM, rBrgOutM, rBrgInM, xBrg1Mid, ec.brgB, `${sh.name} 内列圆锥滚子轴承 ${sh.brg.code}`)
+          });
+          auxBearingSpacerParts.push({
+            fileName: `12_Bearing_Out_Shaft${idx + 1}_${safeCode}.SLDPRT`,
+            title: `${sh.name}外列滚动轴承(${sh.brg.code})`,
+            bx: (xBrg2Mid / 1000).toFixed(5), by: cyM.toFixed(5), bz: '0.00000',
+            vba: buildRingVBA(3, 0, cyM, rBrgOutM, rBrgInM, xBrg2Mid, ec.brgB, `${sh.name} 外列圆锥滚子轴承 ${sh.brg.code}`)
+          });
+          auxBearingSpacerParts.push({
+            fileName: `15_Spacer_Inter_Shaft${idx + 1}_${safeCode}.SLDPRT`,
+            title: `${sh.name}双列轴承定距隔套`,
+            bx: (xSpacerMid / 1000).toFixed(5), by: cyM.toFixed(5), bz: '0.00000',
+            vba: buildRingVBA(3, 0, cyM, rAdjInM, rBrgInM + 0.0005, xSpacerMid, spW, `${sh.name} 双列轴承内圈定距隔套`)
+          });
+          auxBearingSpacerParts.push({
+            fileName: `18_AdjustRing_Shaft${idx + 1}_${safeCode}.SLDPRT`,
+            title: `${sh.name}轴承游隙调整环`,
+            bx: (xAdjMid / 1000).toFixed(5), by: cyM.toFixed(5), bz: '0.00000',
+            vba: buildRingVBA(3, 0, cyM, rAdjOutM, rAdjInM, xAdjMid, ec.adjW, `${sh.name} 轴承游隙调整环`)
+          });
+        } else {
+          endSigns.forEach(sgn => {
+            const sideTag = sgn < 0 ? 'L' : 'R';
+            const sideCn = sgn < 0 ? '左/前' : '右/后';
+            const brgMid = sgn * (ec.halfWallIn + ec.brgB * 0.5);
+            const adjMid = sgn * (ec.halfWallIn + ec.brgB + ec.adjW * 0.5);
+            auxBearingSpacerParts.push({
+              fileName: `11_Bearing_${sideTag}_Shaft${idx + 1}_${safeCode}.SLDPRT`,
+              title: `${sh.name}${sideCn}端滚动轴承(${sh.brg.code})`,
+              bx: isXAxis ? (brgMid / 1000).toFixed(5) : cxM.toFixed(5),
+              by: cyM.toFixed(5),
+              bz: isXAxis ? '0.00000' : (brgMid / 1000).toFixed(5),
+              vba: buildRingVBA(planeId, cxM, cyM, rBrgOutM, rBrgInM, brgMid, ec.brgB, `${sh.name} ${sideCn}端滚动轴承 ${sh.brg.code} (宽B=${ec.brgB}mm)`)
+            });
+            auxBearingSpacerParts.push({
+              fileName: `18_AdjustRing_${sideTag}_Shaft${idx + 1}_${safeCode}.SLDPRT`,
+              title: `${sh.name}${sideCn}端调整环`,
+              bx: isXAxis ? (adjMid / 1000).toFixed(5) : cxM.toFixed(5),
+              by: cyM.toFixed(5),
+              bz: isXAxis ? '0.00000' : (adjMid / 1000).toFixed(5),
+              vba: buildRingVBA(planeId, cxM, cyM, rAdjOutM, rAdjInM, adjMid, ec.adjW, `${sh.name} ${sideCn}端轴承调整环 (厚${ec.adjW}mm)`)
+            });
+          });
+          // Each Spacer Sleeve (定距环/轴套) as its own independent .SLDPRT part!
+          (stp.spacerSleeves3D || []).forEach((sp, spIdx) => {
+            const spW = sp.z2 - sp.z1;
+            if (spW >= 4) {
+              const spMid = 0.5 * (sp.z1 + sp.z2);
+              auxBearingSpacerParts.push({
+                fileName: `15_Spacer_${spIdx + 1}_Shaft${idx + 1}_${safeCode}.SLDPRT`,
+                title: `${sh.name}定距环/轴套(${sp.id})`,
+                bx: isXAxis ? (spMid / 1000).toFixed(5) : cxM.toFixed(5),
+                by: cyM.toFixed(5),
+                bz: isXAxis ? '0.00000' : (spMid / 1000).toFixed(5),
+                vba: buildRingVBA(planeId, cxM, cyM, sp.d_out / 2000, sp.d_in / 2000, spMid, spW, `${sh.name} 轴上独立定距环/轴套 ${sp.id} (Φ${sp.d_in}/Φ${sp.d_out}×${spW.toFixed(1)}mm)`)
+              });
+            }
+          });
+        }
+
+        // 2) Bearing End-Caps (透盖 & 闷盖) with EXACT outer-to-inner Bounding-Box Center (ZERO housing interference!)
+        endSigns.forEach(sgn => {
+          const isThrough = (sgn === ec.extSign);
+          const capLabel = isThrough ? 'ThroughCap' : 'BlindCap';
+          const capTitle = isThrough ? `${sh.name}透盖(${sgn < 0 ? '左/前' : '右/后'}端)` : `${sh.name}闷盖(${sgn < 0 ? '左/前' : '右/后'}端)`;
+          const bossOutMm = (bType === 'left_ortho')
+            ? -(h.L_in * 0.5 + h.delta + h.c_flange_protrude)
+            : (sgn * ec.halfBossOut);
+          const flangeMidMm = bossOutMm + sgn * (ec.capFlangeT * 0.5);
+          const spigotLen = Math.max(4, Math.min(18, ec.spigotLen));
+          const spigotMidMm = bossOutMm - sgn * (spigotLen * 0.5);
+          const rCapOutM = ec.D2_cap / 2000;
+          const rSpigotOutM = (ec.brgD - 0.3) / 2000;
+          const rShaftPassM = isThrough ? ((stp.d_s2 + 2.0) / 2000) : 0;
+          const rSpigotInM = isThrough ? rShaftPassM : Math.max(0.006, (ec.brgD * 0.65) / 2000);
+          const rBoltPitchM = ec.D0_screw / 2000;
+          const rBoltHoleM = ec.clearanceHoleDia / 2000;
+          const anglesDeg = (ec.boltCount === 6) ? [30, 90, 150, 210, 270, 330] : [45, 135, 225, 315];
+          const boltCirclesVBA = anglesDeg.map(deg => {
+            const rad = deg * Math.PI / 180;
+            const hx = cxM + rBoltPitchM * Math.cos(rad);
+            const hy = cyM + rBoltPitchM * Math.sin(rad);
+            return `            Set skSeg = Part.SketchManager.CreateCircleByRadius(${hx.toFixed(5)}, ${hy.toFixed(5)}, 0, ${rBoltHoleM.toFixed(5)})`;
+          }).join('\n');
+
+          let capVBA = `
+        ' === ${capTitle} (法兰Φ${ec.D2_cap}×${ec.capFlangeT}mm, 止口Φ${ec.brgD}×${spigotLen}mm, ${ec.boltCount}×Φ${ec.clearanceHoleDia}mm螺栓通孔) ===
+        SafeCloseSketch Part
+        If SelectStdPlane(Part, ${planeId}) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(${cxM.toFixed(5)}, ${cyM.toFixed(5)}, 0, ${rCapOutM.toFixed(5)})`
+            + (isThrough ? `\n            Set skSeg = Part.SketchManager.CreateCircleByRadius(${cxM.toFixed(5)}, ${cyM.toFixed(5)}, 0, ${rShaftPassM.toFixed(5)})` : '')
+            + `\n${boltCirclesVBA}
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(planeId, flangeMidMm, ec.capFlangeT, false)}
+            SafeCloseSketch Part
+        End If
+        ' --- 端盖定位止口 (伸入轴承座孔压紧调整环与轴承外圈) ---
+        SafeCloseSketch Part
+        If SelectStdPlane(Part, ${planeId}) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(${cxM.toFixed(5)}, ${cyM.toFixed(5)}, 0, ${rSpigotOutM.toFixed(5)})
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(${cxM.toFixed(5)}, ${cyM.toFixed(5)}, 0, ${rSpigotInM.toFixed(5)})
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(planeId, spigotMidMm, spigotLen, false)}
+            SafeCloseSketch Part
+        End If`;
+
+          // Exact axial extents of the end-cap (spigot inner face -> outer face incl. oil-seal boss!)
+          let capInnerBoundMm = bossOutMm - sgn * spigotLen;
+          let capOuterBoundMm = bossOutMm + sgn * ec.capFlangeT;
+
+          if (isThrough && ec.oilSeal) {
+            const sealB = ec.oilSeal.B || 10;
+            const sealD = ec.oilSeal.D || (stp.d_s2 + 18);
+            const rSealSeatM = sealD / 2000;
+            const sealSeatMidMm = bossOutMm + sgn * (ec.capFlangeT + sealB * 0.5);
+            capOuterBoundMm = bossOutMm + sgn * (ec.capFlangeT + sealB);
+            capVBA += `
+        ' --- 透盖骨架油封座凸台 (外径Φ${(sealD + 12).toFixed(0)}mm, 内孔Φ${sealD}H8×${sealB}mm) ---
+        SafeCloseSketch Part
+        If SelectStdPlane(Part, ${planeId}) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(${cxM.toFixed(5)}, ${cyM.toFixed(5)}, 0, ${((sealD + 12) / 2000).toFixed(5)})
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(${cxM.toFixed(5)}, ${cyM.toFixed(5)}, 0, ${rSealSeatM.toFixed(5)})
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(planeId, sealSeatMidMm, sealB, false)}
+            SafeCloseSketch Part
+        End If`;
+
+            // 3) Separate GB/T 13871.1 TC Skeleton Oil Seal Part
+            const sealVBA = buildRingVBA(
+              planeId, cxM, cyM, sealD / 2000, stp.d_s2 / 2000, sealSeatMidMm, sealB,
+              `${sh.name} 国标骨架油封 TC ${stp.d_s2}×${sealD}×${sealB} (GB/T 13871.1)`
+            );
+            auxOilSealParts.push({
+              fileName: `3${idx + 1}_OilSeal_TC${stp.d_s2}x${sealD}x${sealB}_Shaft${idx + 1}_${safeCode}.SLDPRT`,
+              title: `${sh.name}骨架油封 TC${stp.d_s2}×${sealD}×${sealB}`,
+              bx: isXAxis ? (sealSeatMidMm / 1000).toFixed(5) : cxM.toFixed(5),
+              by: cyM.toFixed(5),
+              bz: isXAxis ? '0.00000' : (sealSeatMidMm / 1000).toFixed(5),
+              vba: sealVBA
+            });
+          }
+
+          // TRUE bounding-box center of the entire end-cap (spigot + flange + optional oil-seal boss)
+          const capSpanMidM = (0.5 * (capInnerBoundMm + capOuterBoundMm)) / 1000;
+          auxEndCapParts.push({
+            fileName: `2${idx + 1}_${capLabel}_${sgn < 0 ? 'L' : 'R'}_Shaft${idx + 1}_${safeCode}.SLDPRT`,
+            title: capTitle,
+            bx: isXAxis ? capSpanMidM.toFixed(5) : cxM.toFixed(5),
+            by: cyM.toFixed(5),
+            bz: isXAxis ? '0.00000' : capSpanMidM.toFixed(5),
+            vba: capVBA
+          });
+        });
+      });
+
+      // 4) Dedicated 2K-H Planetary Gearbox Parts (only populated when d.isPlanetary === true)
+      const planetaryParts = [];
+      if (d.isPlanetary) {
+        const gP = d.gearStages[0];
+        const np = Math.max(3, gP.np || 3);
+        const rOrbitM = (gP.a_or_Re || ((gP.d1 + gP.dp) * 0.5)) / 1000;
+        const rPlanetOutM = (gP.dap || gP.dp + 2 * gP.mn) / 2000;
+        const rPlanetPinM = Math.max(0.006, (gP.dp * 0.30) / 2000);
+        const bPlanetMm = gP.b2 || gP.b1;
+        const zStgMm = gP.zPinion || 0;
+        const rRingInM = (gP.da2 || (gP.d2 - 2 * gP.mn)) / 2000;
+        const rRingOutM = Math.max(rRingInM + 0.016, (gP.df2 * 0.54) / 1000);
+        const rBarrelOutM = rRingOutM + (h.delta / 1000);
+        const rFlangeOutM = rBarrelOutM + (h.c_flange_protrude / 1000);
+        const shInP = d.shafts[0];
+        const shOutP = d.shafts[d.shafts.length - 1];
+        const ecInP = shInP.endCapLayout;
+        const ecOutP = shOutP.endCapLayout;
+        const halfB_inMm = h.B_in * 0.5;
+        const halfB_outMm = halfB_inMm + h.delta;
+
+        // 4A. Planetary Cylindrical Housing (01_PlanetaryHousing)
+        const inAngles = (ecInP.boltCount === 6) ? [30, 90, 150, 210, 270, 330] : [45, 135, 225, 315];
+        const outAngles = (ecOutP.boltCount === 6) ? [30, 90, 150, 210, 270, 330] : [45, 135, 225, 315];
+        const inTapLines = inAngles.map(deg => {
+          const rad = deg * Math.PI / 180;
+          return `            Set skSeg = Part.SketchManager.CreateCircleByRadius(${(ecInP.D0_screw/2000*Math.cos(rad)).toFixed(5)}, ${(ecInP.D0_screw/2000*Math.sin(rad)).toFixed(5)}, 0, ${(ecInP.tapDrillDia/2000).toFixed(5)})`;
+        }).join('\n');
+        const outTapLines = outAngles.map(deg => {
+          const rad = deg * Math.PI / 180;
+          return `            Set skSeg = Part.SketchManager.CreateCircleByRadius(${(ecOutP.D0_screw/2000*Math.cos(rad)).toFixed(5)}, ${(ecOutP.D0_screw/2000*Math.sin(rad)).toFixed(5)}, 0, ${(ecOutP.tapDrillDia/2000).toFixed(5)})`;
+        }).join('\n');
+
+        const planHousingVBA = `
+        ' ==================== 2K-H 同轴行星减速机圆筒箱体 (含前后法兰、轴承座与端盖螺纹底孔) ====================
+        SafeCloseSketch Part
+        ' 1. 主圆筒机壳外壁 (Φ${(rBarrelOutM*2000).toFixed(1)}mm × 内腔Φ${(rRingOutM*2000).toFixed(1)}mm)
+        If SelectStdPlane(Part, 1) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${rBarrelOutM.toFixed(5)})
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${rRingOutM.toFixed(5)})
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(1, 0, h.B_in + 2 * h.delta, false)}
+            SafeCloseSketch Part
+        End If
+        ' 2. 前端(-Z输入侧)法兰与同轴轴承座
+        If SelectStdPlane(Part, 1) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${rFlangeOutM.toFixed(5)})
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${(shInP.brg.D / 2000).toFixed(5)})
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(1, -(halfB_inMm + h.delta * 0.5), h.delta, false)}
+            SafeCloseSketch Part
+        End If
+        If SelectStdPlane(Part, 1) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${(ecInP.D_boss / 2000).toFixed(5)})
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${(shInP.brg.D / 2000).toFixed(5)})
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(1, -(halfB_outMm + (ecInP.halfBossOut - halfB_outMm) * 0.5), Math.max(8, ecInP.halfBossOut - halfB_outMm), false)}
+            SafeCloseSketch Part
+        End If
+        ' 3. 后端(+Z输出侧)法兰与同轴轴承座
+        If SelectStdPlane(Part, 1) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${rFlangeOutM.toFixed(5)})
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${(shOutP.brg.D / 2000).toFixed(5)})
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(1, halfB_inMm + h.delta * 0.5, h.delta, false)}
+            SafeCloseSketch Part
+        End If
+        If SelectStdPlane(Part, 1) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${(ecOutP.D_boss / 2000).toFixed(5)})
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${(shOutP.brg.D / 2000).toFixed(5)})
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(1, halfB_outMm + (ecOutP.halfBossOut - halfB_outMm) * 0.5, Math.max(8, ecOutP.halfBossOut - halfB_outMm), false)}
+            SafeCloseSketch Part
+        End If
+        ' 4. 输入端与输出端轴承座端面螺纹底孔 (M${ecInP.d3_screw} / M${ecOutP.d3_screw})
+        If SelectStdPlane(Part, 1) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+${inTapLines}
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(1, -(ecInP.halfBossOut - ecInP.d3_screw * 0.9), ecInP.d3_screw * 1.8, true)}
+            SafeCloseSketch Part
+        End If
+        If SelectStdPlane(Part, 1) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+${outTapLines}
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(1, ecOutP.halfBossOut - ecOutP.d3_screw * 0.9, ecOutP.d3_screw * 1.8, true)}
+            SafeCloseSketch Part
+        End If`;
+
+        planetaryParts.push({
+          fileName: `01_PlanetaryHousing_${safeCode}.SLDPRT`,
+          title: '行星圆筒机座箱体',
+          bx: '0.00000', by: '0.00000', bz: '0.00000',
+          vba: planHousingVBA
+        });
+
+        // 4B. Fixed Internal Ring Gear (02_InternalRingGear)
+        const ringGearVBA = buildRingVBA(1, 0, 0, rRingOutM - 0.0002, rRingInM, zStgMm, bPlanetMm, `固定式内齿圈 (z2=${gP.z2}, 齿顶圆内孔Φ${(rRingInM*2000).toFixed(1)}mm)`);
+        planetaryParts.push({
+          fileName: `02_InternalRingGear_${safeCode}.SLDPRT`,
+          title: '固定式内齿圈',
+          bx: '0.00000', by: '0.00000', bz: (zStgMm / 1000).toFixed(5),
+          vba: ringGearVBA
+        });
+
+        // 4C. Sun Input Shaft (03_SunInputShaft) — reuse individualShaftParts[0]
+        if (individualShaftParts[0]) {
+          planetaryParts.push({
+            fileName: `03_SunInputShaft_${safeCode}.SLDPRT`,
+            title: '中心太阳轮输入轴',
+            bx: individualShaftParts[0].bx,
+            by: individualShaftParts[0].by,
+            bz: individualShaftParts[0].bz,
+            vba: individualShaftParts[0].vba
+          });
+        }
+
+        // 4D. Np Planet Gears (04_PlanetGears_xNp) at exact orbital radius a_p = (d1+dp)/2
+        let planetGearsVBA = `        ' === ${np}个均布行星轮 (分布圆半径 a_p=${(rOrbitM*1000).toFixed(2)}mm, 齿顶圆Φ${(rPlanetOutM*2000).toFixed(1)}mm, 齿宽b=${bPlanetMm}mm) ===
+`;
+        for (let k = 0; k < np; k++) {
+          const ang = (2 * Math.PI * k) / np;
+          const pxM = rOrbitM * Math.cos(ang);
+          const pyM = rOrbitM * Math.sin(ang);
+          planetGearsVBA += buildRingVBA(1, pxM, pyM, rPlanetOutM, rPlanetPinM, zStgMm, bPlanetMm, `第${k+1}号行星轮 (${(ang*180/Math.PI).toFixed(0)}°)`);
+        }
+        planetaryParts.push({
+          fileName: `04_PlanetGears_x${np}_${safeCode}.SLDPRT`,
+          title: `${np}个均布行星轮组`,
+          bx: '0.00000', by: '0.00000', bz: (zStgMm / 1000).toFixed(5),
+          vba: planetGearsVBA
+        });
+
+        // 4E. Double-Wall Cage Planet Carrier + Integral Output Shaft (05_PlanetCarrier_Output)
+        const cheekT = Math.max(8, Math.round(bPlanetMm * 0.22));
+        const zCheekF = zStgMm - bPlanetMm * 0.5 - 2 - cheekT * 0.5;
+        const zCheekR = zStgMm + bPlanetMm * 0.5 + 2 + cheekT * 0.5;
+        const rCarrierOutM = Math.min(rRingInM - 0.004, rOrbitM + rPlanetPinM * 1.85);
+        const rCarrierInM = Math.max((gP.da1 * 0.5 + 4) / 1000, shInP.stepped.d_s3 / 2000 + 0.006);
+        const pinSpanMm = (zCheekR - zCheekF) + cheekT;
+        let carrierVBA = `
+        ' ==================== 双壁笼式行星架与一体式输出轴 (含前/后架壁板 + ${np}根行星销轴 + 连接立柱 + 输出轴) ====================
+        SafeCloseSketch Part
+        ' 1. 行星架前侧壁板 (-Z)
+        If SelectStdPlane(Part, 1) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${rCarrierOutM.toFixed(5)})
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${rCarrierInM.toFixed(5)})
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(1, zCheekF, cheekT, false)}
+            SafeCloseSketch Part
+        End If
+        ' 2. 行星架后侧壁板 (+Z, 实心盘与输出轴一体)
+        If SelectStdPlane(Part, 1) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(0, 0, 0, ${rCarrierOutM.toFixed(5)})
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(1, zCheekR, cheekT, false)}
+            SafeCloseSketch Part
+        End If`;
+        for (let k = 0; k < np; k++) {
+          const ang = (2 * Math.PI * k) / np;
+          const pxM = rOrbitM * Math.cos(ang);
+          const pyM = rOrbitM * Math.sin(ang);
+          const brAng = ang + Math.PI / np;
+          const bxM = (rCarrierOutM - 0.008) * Math.cos(brAng);
+          const byM = (rCarrierOutM - 0.008) * Math.sin(brAng);
+          carrierVBA += `
+        ' --- 行星销轴 #${k+1} & 笼式连接立柱 #${k+1} ---
+        If SelectStdPlane(Part, 1) Then
+            Part.SketchManager.InsertSketch True
+            Part.SketchManager.AddToDB = True
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(${pxM.toFixed(5)}, ${pyM.toFixed(5)}, 0, ${(rPlanetPinM - 0.0002).toFixed(5)})
+            Set skSeg = Part.SketchManager.CreateCircleByRadius(${bxM.toFixed(5)}, ${byM.toFixed(5)}, 0, 0.00650)
+            Part.SketchManager.AddToDB = False
+            Set myFeature = ${buildSpanExtrudeOnPlane(1, zStgMm, pinSpanMm, false)}
+            SafeCloseSketch Part
+        End If`;
+        }
+        // Append integral coaxial output shaft segments from individualShaftParts[last]
+        const outShPart = individualShaftParts[individualShaftParts.length - 1];
+        if (outShPart) {
+          carrierVBA += `
+${outShPart.vba}`;
+        }
+        const zCarrierMin = zCheekF - cheekT * 0.5;
+        const zCarrierMax = shOutP.stepped.zSteps3D.length ? Math.max(...shOutP.stepped.zSteps3D.map(s => s.z2)) : (zCheekR + 120);
+        planetaryParts.push({
+          fileName: `05_PlanetCarrier_Output_${safeCode}.SLDPRT`,
+          title: '双壁笼式行星架与输出轴',
+          bx: '0.00000', by: '0.00000', bz: (0.5 * (zCarrierMin + zCarrierMax) / 1000).toFixed(5),
+          vba: carrierVBA
+        });
+      }
+
       // Build VBA blocks for creating & saving each individual Shaft Part and Driven Wheel Part
-      const buildShaftsAndWheelsPartsVBA = [
+      const buildShaftsAndWheelsPartsVBA = (d.isPlanetary ? [
+        ...planetaryParts.map(pp => `
+        ' ==================== 创建并保存行星减速机独立零件: ${pp.fileName} (${pp.title}) ====================
+        Set Part = CreateNewPartDoc(swApp)
+        If Not Part Is Nothing Then
+            ImportAllEquations Part
+${pp.vba}
+            FinalizeAndSavePart fso, Part, outDir & "\\${pp.fileName}"
+        End If`),
+        ...auxBearingSpacerParts.map(bp => `
+        ' ==================== 创建并保存轴承与定距环零件: ${bp.fileName} (${bp.title}) ====================
+        Set Part = CreateNewPartDoc(swApp)
+        If Not Part Is Nothing Then
+            ImportAllEquations Part
+${bp.vba}
+            FinalizeAndSavePart fso, Part, outDir & "\\${bp.fileName}"
+        End If`),
+        ...auxEndCapParts.map(cp => `
+        ' ==================== 创建并保存轴承端盖零件: ${cp.fileName} (${cp.title}) ====================
+        Set Part = CreateNewPartDoc(swApp)
+        If Not Part Is Nothing Then
+            ImportAllEquations Part
+${cp.vba}
+            FinalizeAndSavePart fso, Part, outDir & "\\${cp.fileName}"
+        End If`),
+        ...auxOilSealParts.map(op => `
+        ' ==================== 创建并保存国标骨架油封零件: ${op.fileName} (${op.title}) ====================
+        Set Part = CreateNewPartDoc(swApp)
+        If Not Part Is Nothing Then
+            ImportAllEquations Part
+${op.vba}
+            FinalizeAndSavePart fso, Part, outDir & "\\${op.fileName}"
+        End If`)
+      ] : [
         ...individualShaftParts.map(sp => `
         ' ==================== 创建并保存独立轴零件: ${sp.fileName} (${sp.title}) ====================
         Set Part = CreateNewPartDoc(swApp)
@@ -13108,25 +14566,73 @@ ${sp.vba}
             ImportAllEquations Part
 ${wp.vba}
             FinalizeAndSavePart fso, Part, outDir & "\\${wp.fileName}"
+        End If`),
+        ...auxBearingSpacerParts.map(bp => `
+        ' ==================== 创建并保存轴承与定距环零件: ${bp.fileName} (${bp.title}) ====================
+        Set Part = CreateNewPartDoc(swApp)
+        If Not Part Is Nothing Then
+            ImportAllEquations Part
+${bp.vba}
+            FinalizeAndSavePart fso, Part, outDir & "\\${bp.fileName}"
+        End If`),
+        ...auxEndCapParts.map(cp => `
+        ' ==================== 创建并保存轴承端盖零件: ${cp.fileName} (${cp.title}) ====================
+        Set Part = CreateNewPartDoc(swApp)
+        If Not Part Is Nothing Then
+            ImportAllEquations Part
+${cp.vba}
+            FinalizeAndSavePart fso, Part, outDir & "\\${cp.fileName}"
+        End If`),
+        ...auxOilSealParts.map(op => `
+        ' ==================== 创建并保存国标骨架油封零件: ${op.fileName} (${op.title}) ====================
+        Set Part = CreateNewPartDoc(swApp)
+        If Not Part Is Nothing Then
+            ImportAllEquations Part
+${op.vba}
+            FinalizeAndSavePart fso, Part, outDir & "\\${op.fileName}"
         End If`)
-      ].join('\n');
+      ]).join('\n');
 
       // Build VBA block for inserting all generated .SLDPRT files into the master .SLDASM Assembly
       const assyInsertLines = [];
-      if (buildHousing) {
-        assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\01_LowerHousing_${safeCode}.SLDPRT", 0.0, ${(-h.H_center / 2000).toFixed(5)}, 0.0, True`);
-      }
-      if (buildUpperCover) {
-        const covFileName = isContourCover ? `02_CastUpperCover_${safeCode}.SLDPRT` : `02_WeldedUpperCover_${safeCode}.SLDPRT`;
-        assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\${covFileName}", 0.0, ${(h.H_cover / 2000).toFixed(5)}, 0.0, True`);
-      }
-      if (buildShaftsGears) {
-        individualShaftParts.forEach(sp => {
-          assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\${sp.fileName}", ${sp.bx}, ${sp.by}, ${sp.bz}, True`);
+      if (d.isPlanetary) {
+        planetaryParts.forEach(pp => {
+          assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\${pp.fileName}", ${pp.bx}, ${pp.by}, ${pp.bz}, True`);
         });
-        individualWheelParts.forEach(wp => {
-          assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\${wp.fileName}", ${wp.bx}, ${wp.by}, ${wp.bz}, True`);
+        auxBearingSpacerParts.forEach(bp => {
+          assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\${bp.fileName}", ${bp.bx}, ${bp.by}, ${bp.bz}, True`);
         });
+        auxEndCapParts.forEach(cp => {
+          assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\${cp.fileName}", ${cp.bx}, ${cp.by}, ${cp.bz}, True`);
+        });
+        auxOilSealParts.forEach(op => {
+          assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\${op.fileName}", ${op.bx}, ${op.by}, ${op.bz}, True`);
+        });
+      } else {
+        if (buildHousing) {
+          assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\01_LowerHousing_${safeCode}.SLDPRT", 0.0, ${(-h.H_center / 2000).toFixed(5)}, 0.0, True`);
+        }
+        if (buildUpperCover) {
+          const covFileName = isContourCover ? `02_CastUpperCover_${safeCode}.SLDPRT` : `02_WeldedUpperCover_${safeCode}.SLDPRT`;
+          assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\${covFileName}", 0.0, ${(h.H_cover / 2000).toFixed(5)}, 0.0, True`);
+        }
+        if (buildShaftsGears) {
+          individualShaftParts.forEach(sp => {
+            assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\${sp.fileName}", ${sp.bx}, ${sp.by}, ${sp.bz}, True`);
+          });
+          individualWheelParts.forEach(wp => {
+            assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\${wp.fileName}", ${wp.bx}, ${wp.by}, ${wp.bz}, True`);
+          });
+          auxBearingSpacerParts.forEach(bp => {
+            assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\${bp.fileName}", ${bp.bx}, ${bp.by}, ${bp.bz}, True`);
+          });
+          auxEndCapParts.forEach(cp => {
+            assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\${cp.fileName}", ${cp.bx}, ${cp.by}, ${cp.bz}, True`);
+          });
+          auxOilSealParts.forEach(op => {
+            assyInsertLines.push(`            InsertAndAlignPartInAssy swApp, AssyDoc, outDir & "\\${op.fileName}", ${op.bx}, ${op.by}, ${op.bz}, True`);
+          });
+        }
       }
 
       const covPartFileName = isContourCover ? `02_CastUpperCover_${safeCode}.SLDPRT` : `02_WeldedUpperCover_${safeCode}.SLDPRT`;
@@ -13334,6 +14840,26 @@ Sub FinalizeAndSavePart(fsObj As Object, doc As Object, filePath As String)
     On Error GoTo 0
 End Sub
 
+Function GetStdPlaneName(docOrComp As Object, planeIdx As Integer) As String
+    On Error Resume Next
+    GetStdPlaneName = ""
+    Dim feat As Object
+    Dim countPlane As Integer: countPlane = 0
+    Set feat = docOrComp.FirstFeature
+    Do While Not feat Is Nothing
+        If feat.GetTypeName2 = "RefPlane" Then
+            countPlane = countPlane + 1
+            If countPlane = planeIdx Then
+                GetStdPlaneName = feat.Name
+                On Error GoTo 0
+                Exit Function
+            End If
+        End If
+        Set feat = feat.GetNextFeature
+    Loop
+    On Error GoTo 0
+End Function
+
 Sub InsertAndAlignPartInAssy(app As Object, assy As Object, partPath As String, bx As Double, by As Double, bz As Double, fixIt As Boolean)
     On Error Resume Next
     If assy Is Nothing Or partPath = "" Then Exit Sub
@@ -13344,6 +14870,7 @@ Sub InsertAndAlignPartInAssy(app As Object, assy As Object, partPath As String, 
     assyTitle = assy.GetTitle
     app.ActivateDoc2 assyTitle, True, errs
 
+    ' 1) Insert component at its EXACT bounding-box center (bx, by, bz) so SolidWorks drops it at global Origin (0,0,0) immediately!
     Dim comp As Object
     Set comp = Nothing
     Set comp = assy.AddComponent5(partPath, 0, "", False, "", bx, by, bz)
@@ -13355,39 +14882,42 @@ Sub InsertAndAlignPartInAssy(app As Object, assy As Object, partPath As String, 
     End If
 
     If Not comp Is Nothing Then
-        ' Unfix first in case SolidWorks auto-fixed the first inserted component
         assy.ClearSelection2 True
         If comp.Select2(False, 0) Then assy.UnfixComponent
         assy.ClearSelection2 True
 
-        ' 1) Snap component coordinate system to Assembly Origin via Identity MathTransform
+        ' 2) Snap component coordinate system to Assembly Origin via VBScript-safe Double Identity MathTransform
         Dim mathUtil As Object
         Set mathUtil = app.GetMathUtility
         If Not mathUtil Is Nothing Then
-            Dim xf(15) As Double
-            xf(0) = 1.0: xf(1) = 0.0: xf(2) = 0.0
-            xf(3) = 0.0: xf(4) = 1.0: xf(5) = 0.0
-            xf(6) = 0.0: xf(7) = 0.0: xf(8) = 1.0
-            xf(9) = 0.0: xf(10) = 0.0: xf(11) = 0.0
-            xf(12) = 1.0: xf(13) = 0.0: xf(14) = 0.0: xf(15) = 0.0
+            Dim xfArr
+            xfArr = Array(CDbl(1.0), CDbl(0.0), CDbl(0.0), CDbl(0.0), CDbl(1.0), CDbl(0.0), CDbl(0.0), CDbl(0.0), CDbl(1.0), CDbl(0.0), CDbl(0.0), CDbl(0.0), CDbl(1.0), CDbl(0.0), CDbl(0.0), CDbl(0.0))
             Dim mathXf As Object
-            Set mathXf = mathUtil.CreateTransform(xf)
+            Set mathXf = mathUtil.CreateTransform(xfArr)
             If Not mathXf Is Nothing Then
                 comp.Transform2 = mathXf
             End If
         End If
 
-        ' 2) Add 3 Standard Plane-to-Plane Coincident Mates (Plane 1/2/3) so both .swp and .vbs align 100%
+        ' 3) Add 3 Standard Plane-to-Plane Coincident Mates using localized plane names + Extension.SelectByID2 (Mark = 1)
+        Dim assyBaseName As String
+        assyBaseName = assyTitle
+        If InStr(assyBaseName, ".") > 0 Then assyBaseName = Left(assyBaseName, InStrRev(assyBaseName, ".") - 1)
         Dim pIdx As Integer
         Dim mateErr As Long
         Dim mateFeat As Object
+        Dim aPlaneName As String, cPlaneName As String
         For pIdx = 1 To 3
             assy.ClearSelection2 True
-            If SelectStdPlane(assy, pIdx) Then
-                If SelectCompStdPlane(comp, pIdx, True) Then
-                    Set mateFeat = assy.AddMate5(0, 0, False, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, False, False, 0, mateErr)
-                    If mateFeat Is Nothing Then
-                        Set mateFeat = assy.AddMate3(0, 0, False, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, False, mateErr)
+            aPlaneName = GetStdPlaneName(assy, pIdx)
+            cPlaneName = GetStdPlaneName(comp, pIdx)
+            If aPlaneName <> "" And cPlaneName <> "" Then
+                If assy.Extension.SelectByID2(aPlaneName, "PLANE", 0, 0, 0, False, 1, Nothing, 0) Then
+                    If assy.Extension.SelectByID2(cPlaneName & "@" & comp.Name2 & "@" & assyBaseName, "PLANE", 0, 0, 0, True, 1, Nothing, 0) Then
+                        Set mateFeat = assy.AddMate5(0, 0, False, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, False, False, 0, mateErr)
+                        If mateFeat Is Nothing Then
+                            Set mateFeat = assy.AddMate3(0, 0, False, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, False, mateErr)
+                        End If
                     End If
                 End If
             End If
@@ -13398,6 +14928,7 @@ Sub InsertAndAlignPartInAssy(app As Object, assy As Object, partPath As String, 
             If comp.Select2(False, 0) Then assy.FixComponent
             assy.ClearSelection2 True
         End If
+        assy.EditRebuild3
     End If
     On Error GoTo 0
 End Sub
@@ -13473,12 +15004,7 @@ Function SelectSaveOutputDirectory(fsObj As Object, saveMode As String, customBa
     End If
 
     Dim finalOutDir As String
-    If Right(baseDir, 1) = "\\" Then
-        finalOutDir = baseDir & subFolderName
-    Else
-        finalOutDir = fsObj.BuildPath(baseDir, subFolderName)
-        If finalOutDir = "" Then finalOutDir = baseDir & "\\" & subFolderName
-    End If
+    finalOutDir = fsObj.BuildPath(baseDir, subFolderName)
 
     EnsureFolderExists fsObj, finalOutDir
     SelectSaveOutputDirectory = finalOutDir
@@ -13491,7 +15017,7 @@ Sub main()
 
     On Error Resume Next
     Set fso = CreateObject("Scripting.FileSystemObject")
-    outDir = SelectSaveOutputDirectory(fso, "${saveDirMode}", "${String(customSaveDir).replace(/"/g, '').trim()}", "${d.gearboxFolderName || ('SW_GearBox_' + safeCode)}")
+    outDir = SelectSaveOutputDirectory(fso, "${state.swSaveDirMode || 'prompt'}", "${(state.swCustomSaveDir || '').replace(/"/g, '').trim()}", "${d.gearboxFolderName || ('SW_GearBox_' + safeCode)}")
     If outDir = "" Then
         MsgBox "已取消选择保存位置，SolidWorks 三维建模操作已中止。", vbExclamation, "GearBox Studio Pro"
         Exit Sub
@@ -13502,8 +15028,8 @@ Sub main()
     On Error GoTo 0
 
     ' ==================== 建模范围与装配控制开关 ====================
-    Dim BuildHousing As Boolean:        BuildHousing = ${buildHousing ? 'True' : 'False'}
-    Dim BuildUpperCover As Boolean:     BuildUpperCover = ${buildUpperCover ? 'True' : 'False'}
+    Dim BuildHousing As Boolean:        BuildHousing = ${(buildHousing && !d.isPlanetary) ? 'True' : 'False'}
+    Dim BuildUpperCover As Boolean:     BuildUpperCover = ${(buildUpperCover && !d.isPlanetary) ? 'True' : 'False'}
     Dim BuildShaftsAndGears As Boolean: BuildShaftsAndGears = ${buildShaftsGears ? 'True' : 'False'}
     Dim IsAssemblyScope As Boolean:     IsAssemblyScope = ${isAssemblyMode ? 'True' : 'False'}
 
@@ -13710,6 +15236,45 @@ ${lowerOrthoInwardBossAndRibBlock}
 
             ' 6. 切除各级轴承座半圆内孔 (ΦD_brg H7)
 ${boreCutBlocks}
+
+            ' 7. 切除下箱座各轴承座端面端盖紧固螺纹底孔 (避开分箱面 ±30°/±45° 均布)
+${lowerEndCapHolesLines ? `            SafeCloseSketch Part
+            If SelectStdPlane(Part, 1) Then
+                Part.SketchManager.InsertSketch True
+                Part.SketchManager.AddToDB = True
+${lowerEndCapHolesLines}
+                Part.SketchManager.AddToDB = False
+                Set myFeature = Part.FeatureManager.FeatureCut3(False, False, False, 0, 0, (halfB_out + 0.08), (halfB_out + 0.08), False, False, False, False, 0, 0, False, False, False, False, False, True, True, True, True, False, 0, 0, False)
+                SafeCloseSketch Part
+            End If` : ''}
+${lowerOrthoLeftCapHolesLines ? `            SafeCloseSketch Part
+            If SelectStdPlane(Part, 3) Then
+                Part.SketchManager.InsertSketch True
+                Part.SketchManager.AddToDB = True
+${lowerOrthoLeftCapHolesLines}
+                Part.SketchManager.AddToDB = False
+                Set myFeature = Part.FeatureManager.FeatureCut3(True, False, False, 0, 0, L_base, 0.005, False, False, False, False, 0, 0, False, False, False, False, False, True, True, True, True, False, 0, 0, False)
+                SafeCloseSketch Part
+            End If` : ''}
+${d.isWormDrive && d.shafts[0] && d.shafts[0].endCapLayout ? (() => {
+  const ecW = d.shafts[0].endCapLayout;
+  const angs = ecW.boltCount === 6 ? [30, 90, 150, 210, 270, 330] : [45, 135, 225, 315];
+  const yW = d.shafts[0].coordY / 1000;
+  const linesW = angs.map(deg => {
+    const rad = deg * Math.PI / 180;
+    return `                Set skSeg = Part.SketchManager.CreateCircleByRadius(${(ecW.D0_screw/2000*Math.cos(rad)).toFixed(5)}, ${(yW + ecW.D0_screw/2000*Math.sin(rad)).toFixed(5)}, 0, ${(ecW.tapDrillDia/2000).toFixed(5)})`;
+  }).join('\n');
+  return `            ' --- 蜗杆左右端壁轴承座端盖螺纹底孔 (${ecW.boltCount}×M${ecW.d3_screw}) ---
+            SafeCloseSketch Part
+            If SelectStdPlane(Part, 3) Then
+                Part.SketchManager.InsertSketch True
+                Part.SketchManager.AddToDB = True
+${linesW}
+                Part.SketchManager.AddToDB = False
+                Set myFeature = Part.FeatureManager.FeatureCut3(False, False, False, 0, 0, L_base, L_base, False, False, False, False, 0, 0, False, False, False, False, False, True, True, True, True, False, 0, 0, False)
+                SafeCloseSketch Part
+            End If`;
+})() : ''}
 
             FinalizeAndSavePart fso, Part, outDir & "\\01_LowerHousing_${safeCode}.SLDPRT"
         End If
@@ -13978,27 +15543,27 @@ End Sub`;
     }
 
     // Pure, Antivirus-Safe SolidWorks COM VBScript Generator (ZERO PowerShell, ZERO Startup folder, ZERO "Nothing" late-binding errors!)
-    function generateVBScriptOneClickLauncher(d, saveDirOptions) {
-      const vbaCode = generateSolidWorksVBAMacro(d, saveDirOptions);
+    function generateVBScriptOneClickLauncher(d) {
+      const vbaCode = generateSolidWorksVBAMacro(d);
       const scope = state.swModelScope || 'all';
       const vbsBody = vbaCode
         .replace(/^Option Explicit\r?\n?/m, '')
         .replace(/\bAs\s+(Object|Integer|Long|Boolean|String|Double|Variant)\b/g, '')
-        .replace(/^([ \t]*)Next[ \t]+[A-Za-z_]\w*[ \t]*$/gim, '$1Next')
+        .replace(/^([ \t]*)Next[ \t]+[A-Za-z_]\w*/gim, '$1Next')
         .replace(/\bvbInformation\b/g, '64')
         .replace(/\bvbExclamation\b/g, '48')
         .replace(
           /^([ \t]*)Set\s+swApp\s*=\s*Application\.SldWorks\r?\n[ \t]*If\s+swApp\s+Is\s+Nothing\s+Then\s+Exit\s+Sub/m,
-          (_match, indent) => [
-            `${indent}On Error Resume Next`,
-            `${indent}Set swApp = GetObject(, "SldWorks.Application")`,
-            `${indent}If swApp Is Nothing Then Set swApp = CreateObject("SldWorks.Application")`,
-            `${indent}On Error GoTo 0`,
-            `${indent}If swApp Is Nothing Then`,
-            `${indent}    MsgBox "未检测到本机运行的 SolidWorks 或无法启动 SldWorks.Application COM 服务，请先打开 SolidWorks 软件！", 48, "GearBox Studio Pro - 一键自动建模"`,
-            `${indent}    Exit Sub`,
-            `${indent}End If`,
-            `${indent}swApp.Visible = True`
+          [
+            '$1On Error Resume Next',
+            '$1Set swApp = GetObject(, "SldWorks.Application")',
+            '$1If swApp Is Nothing Then Set swApp = CreateObject("SldWorks.Application")',
+            '$1On Error GoTo 0',
+            '$1If swApp Is Nothing Then',
+            '$1    MsgBox "未检测到本机运行的 SolidWorks 或无法启动 SldWorks.Application COM 服务，请先打开 SolidWorks 软件！", 48, "GearBox Studio Pro - 一键自动建模"',
+            '$1    Exit Sub',
+            '$1End If',
+            '$1swApp.Visible = True'
           ].join('\n')
         );
 
@@ -14023,6 +15588,7 @@ Call main()
       if (notifyUnverifiedBearingCatalog(d)) return;
       const scope = state.swModelScope || 'all';
       const eqEntries = buildEquationEntriesList(d);
+      const vbsPayload = generateVBScriptOneClickLauncher(d);
       const modal = document.getElementById('swLiveConsoleModal');
       const logBox = document.getElementById('swLiveConsoleLog');
       const statusBadge = document.getElementById('swLiveConsoleStatus');
@@ -14049,44 +15615,6 @@ Call main()
 
       appendLog(`启动 SolidWorks 自动建模引擎：型号 ${d.codeName} (模块: ${scope})`);
       appendLog(`已准备 ${eqEntries.length} 项全局变量方程式 (含中文备注) 与草图尺寸关联规则...`);
-
-      let saveDirOptions;
-      if (
-        (state.swSaveDirMode || 'prompt') === 'prompt' &&
-        window.gearboxDesktop &&
-        typeof window.gearboxDesktop.runSolidWorksModeling === 'function' &&
-        typeof window.gearboxDesktop.chooseSaveDirectory === 'function'
-      ) {
-        appendLog('正在打开桌面端原生文件夹选择框...');
-        try {
-          const result = await window.gearboxDesktop.chooseSaveDirectory();
-          if (!result || !result.ok || !result.path) {
-            const message = result && result.error
-              ? `保存目录选择失败：${result.error}`
-              : '已取消选择保存位置，建模未启动。';
-            appendLog('⚠ ' + message);
-            if (statusBadge) {
-              statusBadge.textContent = '已取消/无法选择保存目录';
-              statusBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 mono';
-            }
-            showToast(message);
-            return;
-          }
-          saveDirOptions = { mode: 'custom', customBaseDir: result.path };
-          appendLog(`✓ 已选择保存根目录：${result.path}`);
-        } catch (error) {
-          const message = error && error.message ? error.message : String(error);
-          appendLog('⚠ 无法打开桌面端文件夹选择框：' + message);
-          if (statusBadge) {
-            statusBadge.textContent = '无法打开保存目录选择框';
-            statusBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40 mono';
-          }
-          showToast('无法打开保存目录选择框：' + message);
-          return;
-        }
-      }
-
-      const vbsPayload = generateVBScriptOneClickLauncher(d, saveDirOptions);
 
       // ==================== 通道 1: Electron 受控主进程安全 IPC 建模通道 ====================
       try {
@@ -15953,7 +17481,7 @@ Call main()
             `  (AM_GDT_Frame_Elbow (list ${F(cxGear - halfB)} ${F(cyBase - rPitch * 0.7)} 0.0) (list ${F(cxGear - halfB - 18 * scGlobal)} ${F(cyBase - rPitch * 0.7)} 0.0) (list ${F(cxGear - halfB - 48 * scGlobal)} ${F(cyBase - rPitch * 0.7)} 0.0) "{\\\\Fgdt;h}%%v${tolWheelG.tRunoutAxial}%%vA" sc)`
           );
         }
-        lines.push(`  (princ "\\n[✓] 已完成零件图纸绘制: ${shItem.partTitle}")`, `)`);
+        lines.push(`  (princ "\n[✓] 已完成零件图纸绘制: ${shItem.partTitle}")`, `)`);
       });
 
       const firstSh = targetSheets[0];
@@ -15975,7 +17503,7 @@ Call main()
         `(defun *error* ( msg )`,
         `  (AM_RestoreUserEnv)`,
         `  (if (and msg (not (wcmatch (strcase msg) "*CANCEL*,*QUIT*,*EXIT*")))`,
-        `    (princ (strcat "\\n[AutoCAD Mechanical] 执行中断: " msg))`,
+        `    (princ (strcat "\n[AutoCAD Mechanical] 执行中断: " msg))`,
         `  )`,
         `  (princ)`,
         `)`,
@@ -15986,7 +17514,7 @@ Call main()
         `    (vl-catch-all-apply 'vla-ZoomExtents (list (vlax-get-acad-object)))`,
         `  )`,
         `  (AM_RestoreUserEnv)`,
-        `  (princ "\\n[✓] 零件图纸绘制完成 (AM_7中心线与分度圆 + A-A剖面线 + 圆柱度 + 原生配合框 + _.AMSURFSYM粗糙度)！")`,
+        `  (princ "\n[✓] 零件图纸绘制完成 (AM_7中心线与分度圆 + A-A剖面线 + 圆柱度 + 原生配合框 + _.AMSURFSYM粗糙度)！")`,
         ...(launchNativeDialog ? [`  (c:AMShaftGen)`] : []),
         `  (princ)`,
         `)`,
@@ -16425,7 +17953,7 @@ Call main()
         `            f'(progn (setvar "CMDDIA" 0) (setvar "AMPOWERDIMEDITOR" 0) (setvar "OSMODE" 0) '`,
         `            f'(vl-cmdf "{cmd_name}" (list {float(x1):.4f} {float(y1):.4f} 0.0) '`,
         `            f'(list {float(x2):.4f} {float(y2):.4f} 0.0) (list {float(dim_x):.4f} {float(dim_y):.4f} 0.0) "") '`,
-        `            f'(while (> (getvar "CMDACTIVE") 0) (vl-cmdf "")) (princ))\\n'`,
+        `            f'(while (> (getvar "CMDACTIVE") 0) (vl-cmdf "")) (princ))\n'`,
         `        )`,
         `        doc.SendCommand(lisp_dim)`,
         `        if msp.Count > cnt_before:`,
@@ -16556,7 +18084,7 @@ Call main()
         `            f'(if (ssget (list {float(x):.4f} {float(y):.4f} 0.0)) '`,
         `            f'(vl-cmdf "_.AMSURFSYM" (list {float(x):.4f} {float(y):.4f} 0.0) (list {float(x):.4f} {float(y):.4f} 0.0) "") '`,
         `            f'(vl-cmdf "_.AMSURFSYM" (list {float(x):.4f} {float(y):.4f} 0.0) "")) '`,
-        `            f'(while (> (getvar "CMDACTIVE") 0) (vl-cmdf "")) (princ))\\n'`,
+        `            f'(while (> (getvar "CMDACTIVE") 0) (vl-cmdf "")) (princ))\n'`,
         `        )`,
         `        doc.SendCommand(lisp_surf)`,
         `        if msp.Count > cnt_before:`,
@@ -16789,7 +18317,7 @@ Call main()
         `    if part["sheet_type"] == "shaft":`,
         `        total_l = float(part["total_len"])`,
         `        cx_base = ox + 165.0 * sc`,
-        `        print(f"\\n[COM 底层直绘] 正在绘制: {part['part_title']} (总长={total_l}mm)...")`,
+        `        print(f"\n[COM 底层直绘] 正在绘制: {part['part_title']} (总长={total_l}mm)...")`,
         `        # 轴中心线严格置于 AM_7 图层`,
         `        add_line(msp, cx_base - 14.0 * sc, cy, cx_base + total_l + 14.0 * sc, cy, "AM_7")`,
         `        for seg in part["segments"]:`,
@@ -16918,7 +18446,7 @@ Call main()
         `        acad.ZoomExtents()`,
         `    except Exception:`,
         `        pass`,
-        `    print("\\n[✓] 全部图纸已完成绘制 (AM_7中心线/分度圆 + A-A剖面线 + 圆柱度 + 在位编辑器配合框 + _.AMSURFSYM粗糙度)！")`,
+        `    print("\n[✓] 全部图纸已完成绘制 (AM_7中心线/分度圆 + A-A剖面线 + 圆柱度 + 在位编辑器配合框 + _.AMSURFSYM粗糙度)！")`,
         ``,
         ``,
         `if __name__ == "__main__":`,
@@ -18455,9 +19983,21 @@ Call main()
           return orientCyl(new THREE.CylinderGeometry(rOut, rOut, lenPx, 28));
         }
 
-        // 1) Base core shaft spanning across full bearing seat bosses (d_s3: true hollow tube when isHollow!)
-        const coreGeo = makeShaftSegGeo(r3, lenBrgSpan);
-        grp.add(new THREE.Mesh(coreGeo, matShaft));
+        // 1) Base core shaft strictly bounded by zSteps3D bearing journals (NEVER protrudes on blind end!)
+        const ec3d = sh.endCapLayout;
+        let coreMinPx = -lenBrgSpan * 0.5;
+        let coreMaxPx = lenBrgSpan * 0.5;
+        if (!d.isPlanetary && ec3d) {
+          const blindLenPx = Math.max(brgBounds.brgWidth * 0.85, (ec3d.brgB - 1.5) * s);
+          const extLenPx = Math.max(brgBounds.brgWidth, (ec3d.halfBossOut - ec3d.halfWallIn) * s);
+          const wallHalfPx = ec3d.halfWallIn * s;
+          coreMinPx = (extDirSign === -1) ? -(wallHalfPx + extLenPx) : -(wallHalfPx + blindLenPx);
+          coreMaxPx = (extDirSign === 1) ? (wallHalfPx + extLenPx) : (wallHalfPx + blindLenPx);
+        }
+        const coreGeo = makeShaftSegGeo(r3, Math.max(8, coreMaxPx - coreMinPx));
+        const coreMesh = new THREE.Mesh(coreGeo, matShaft);
+        setPos(coreMesh, 0.5 * (coreMinPx + coreMaxPx));
+        grp.add(coreMesh);
 
         // 2) Rolling Bearing Assembly (Outer Ring, Inner Ring & Adjusting Ring 调整环) 100% seated inside [bossInnerAbs, bossOuterAbs]
         const rBrgOuter = Math.max(r3 + 2.2, sh.brg.D * 0.5 * s);
@@ -18490,6 +20030,18 @@ Call main()
             const segMesh = new THREE.Mesh(segGeo, segMat);
             setPos(segMesh, posSegPx);
             grp.add(segMesh);
+          });
+          // 3B) Visible Spacer Sleeves (定距环/套筒) between gear hub/pinion and bearing inner face
+          (stp.spacerSleeves3D || []).forEach(sp => {
+            const lenSpPx = (sp.z2 - sp.z1) * s;
+            if (lenSpPx < 1.5) return;
+            const posSpPx = 0.5 * (sp.z1 + sp.z2) * s;
+            const rSpOutPx = Math.max(r3 + 1.4, sp.d_out * 0.5 * s);
+            const rSpInPx = Math.max(r3 + 0.2, sp.d_in * 0.5 * s);
+            const spGeo = buildHollowTubeGeo(rSpOutPx, Math.min(rSpOutPx - 0.8, rSpInPx), lenSpPx, isXAxis, 28);
+            const spMesh = new THREE.Mesh(spGeo, matAdjustRing);
+            setPos(spMesh, posSpPx);
+            grp.add(spMesh);
           });
         } else {
           // Planetary / Worm fallback stepped seat & collar
@@ -21019,9 +22571,10 @@ Call main()
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
       }
 
-      const scale = Math.min(350 / h.L_base, 185 / h.W_base);
+      const scale = Math.min(350 / h.L_base, 180 / h.W_base);
       const cx = 285;
-      const cy = 182;
+      const rx = 740;
+      const cy = 192;
 
       const Lb = h.L_base * scale;
       const Wb = h.W_base * scale;
@@ -21029,11 +22582,14 @@ Call main()
       const Bin = h.B_in * scale;
       const wall = Math.max(4, h.delta * scale);
 
+      ctx.save();
       ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 11.5px "Inter", sans-serif';
+      ctx.font = 'bold 12px "Inter", "Microsoft YaHei", sans-serif';
+      ctx.textAlign = 'center';
       const viewTitleA = d.isWormDrive ? 'A-A 俯视交错轴剖面图' : 'A-A 分箱面俯视剖面图';
-      ctx.fillText(viewTitleA, 18, 22);
-      ctx.fillText('B-B 主视全剖内部透视图', 555, 22);
+      ctx.fillText(viewTitleA, cx, 22);
+      ctx.fillText('B-B 主视全剖内部透视图', rx, 22);
+      ctx.restore();
 
       // 1. Base Flange Outer Rectangle
       ctx.strokeStyle = '#64748b';
@@ -21961,16 +23517,15 @@ Call main()
       //    (Shows Hollow Lower Housing Inner Cavity, Oil Sump Bath Level,
       //     Bearing Housing Bosses, and Full Upper & Lower Halves of ALL Gears & Shafts!)
       // ===================================================================
-      const rx = 740;
-      const baseBottomY = 310;
-      const sElev = Math.min(245 / h.L_base, 220 / h.H_total);
+      const sElev = Math.min(245 / h.L_base, 220 / h.H_total, (cy - 44) / Math.max(1, h.H_cover), (H - 24 - cy) / Math.max(1, h.H_center));
       const eLb = h.L_base * sElev;
       const eLout = (h.L_in + 2 * h.delta) * sElev;
       const eLin = h.L_in * sElev;
       const eWall = Math.max(4, h.delta * sElev);
       const eHc = h.H_center * sElev;
       const eHcov = h.H_cover * sElev;
-      const splitY = baseBottomY - eHc;
+      const splitY = cy;
+      const baseBottomY = splitY + eHc;
 
       // 6.1 Outer Lower Housing Wall + Hollow Dark Inner Sump Cavity (NO LONGER SOLID!)
       ctx.fillStyle = 'rgba(14, 165, 233, 0.24)';
@@ -23319,6 +24874,20 @@ Call main()
         }
         const d = calculateGearboxDesign();
         lockBaselineFromCurrentDesign(d);
+        state.customStageRatios = true;
+        state.customStageCenters = true;
+        state.customStageBetas = true;
+        state.customStageModules = true;
+        state.customHelixHands = true;
+        state.customMount = true;
+        if (d && d.housing && d.shafts && d.shafts.length >= 2) {
+          state.userMount.L_mount = d.housing.L_mount;
+          state.userMount.W_mount = d.housing.W_mount;
+          state.userMount.H_center = d.housing.H_center;
+          state.userMount.boltSpec = d.housing.d_f;
+          state.userMount.d_in = d.shafts[0].d_ext;
+          state.userMount.d_out = d.shafts[d.shafts.length - 1].d_ext;
+        }
         return d;
       }
 
@@ -23410,7 +24979,12 @@ Call main()
 
         runFreshBaselineSizing(true);
         syncTopologyButtons();
-        updateAllUI();
+        state.mainParamsDirty = false;
+        state.mainInterferenceBlocked = false;
+        state.gearReportVisible = false;
+        state.gearParamsDirty = false;
+        state.bearingParamsDirty = false;
+        updateAllUI({ skipInterferenceModal: true });
         if (showNotification) {
           showToast(`已载入标准工程方案: ${p.modelDesc || key}（后续调整参数均为局部微调）`);
         }
@@ -23437,9 +25011,10 @@ Call main()
 
         runFreshBaselineSizing(false);
         syncTopologyButtons();
-        updateAllUI();
+        syncSidebarControlsOnly();
+        markMainParamsDirty();
         const orientNames = { parallel: '平行轴圆柱齿轮', orthogonal: nextIsWorm ? '正交圆柱蜗轮蜗杆' : '正交螺旋锥齿轮-圆柱齿轮', planetary: '2K-H同轴行星齿轮' };
-        showToast(`已切换为 ${newStages}级${orientNames[newOrient] || ''}（已保留您输入的 P₁=${state.power}kW, n₁=${state.speed}rpm, i=${state.ratio}）`);
+        showToast(`已切换为 ${newStages}级${orientNames[newOrient] || ''}，调整完 1–4 模块参数后请点击【计算】按钮执行干涉检测与配齿`);
       }
 
       // Initialize default view with DBY180-14 optimized compact orthogonal bevel-helical reducer
@@ -23474,8 +25049,9 @@ Call main()
           for (let s = 0; s < state.stages; s++) {
             adaptStageTeethToLockedCenterAndRatio(s, state.userStageRatios[s]);
           }
-          updateAllUI();
-          showToast(`已切换行星轮个数 np = ${state.planetCount} 个，并在当前中心距与模数下配齿`);
+          syncSidebarControlsOnly();
+          markMainParamsDirty();
+          showToast(`已设置行星轮个数 np = ${state.planetCount} 个，请点击【计算】执行干涉检测与配齿`);
         });
       }
 
@@ -23490,7 +25066,8 @@ Call main()
 
       document.getElementById('selectWormPosition').addEventListener('change', (e) => {
         state.wormPosition = e.target.value;
-        updateAllUI();
+        syncSidebarControlsOnly();
+        markMainParamsDirty();
       });
 
       // Stage buttons (Preserve user Step 2 inputs!)
@@ -23507,16 +25084,18 @@ Call main()
       if (btnReinitFromSpecs) {
         btnReinitFromSpecs.addEventListener('click', () => {
           runFreshBaselineSizing(false);
-          updateAllUI();
-          showToast(`已按当前工况 (P₁=${state.power}kW, n₁=${state.speed}rpm, i=${state.ratio}) 重新初算各级中心距、模数与齿数`);
+          syncSidebarControlsOnly();
+          markMainParamsDirty();
+          showToast(`已按当前工况 (P₁=${state.power}kW, n₁=${state.speed}rpm, i=${state.ratio}) 填入初算值，点击【计算】按钮执行干涉检测与配齿`);
         });
       }
       const btnResetAllStagesAuto = document.getElementById('btnResetAllStagesAuto');
       if (btnResetAllStagesAuto) {
         btnResetAllStagesAuto.addEventListener('click', () => {
           runFreshBaselineSizing(false);
-          updateAllUI();
-          showToast(`已恢复各级参数为当前工况下的手册初算值`);
+          syncSidebarControlsOnly();
+          markMainParamsDirty();
+          showToast(`已恢复各级参数为手册初算值，点击【计算】按钮执行干涉检测与配齿`);
         });
       }
 
@@ -23554,13 +25133,8 @@ Call main()
             }
           }
 
-          updateAllUI();
-          if (id === 'inputMaterial' || id === 'inputHousingMaterial') {
-            const mb = state.design && state.design.housing && state.design.housing.massBreakdown;
-            if (mb) {
-              showToast(`已更新材料物理密度 (箱体 ${mb.housingMatCode}: ρ=${mb.rhoHousing} g/cm³ | 齿轴 ${mb.gearShaftMatCode}: ρ=${mb.rhoWheel} g/cm³) → 整机精确净重 ${mb.totalKg} kg`);
-            }
-          }
+          syncSidebarControlsOnly();
+          markMainParamsDirty();
         });
       });
 
@@ -23616,7 +25190,8 @@ Call main()
             }
           }
         }
-        updateAllUI();
+        syncSidebarControlsOnly();
+        markMainParamsDirty();
       });
 
       ['stageRatio1', 'stageRatio2', 'stageRatio3'].forEach((id, idx) => {
@@ -23632,7 +25207,8 @@ Call main()
               adaptStageTeethToLockedCenterAndRatio(s, state.userStageRatios[s]);
             }
           }
-          updateAllUI();
+          syncSidebarControlsOnly();
+          markMainParamsDirty();
         });
       });
 
@@ -23647,9 +25223,10 @@ Call main()
             adaptStageTeethToLockedCenterAndRatio(s, state.userStageRatios[s]);
           }
         }
-        updateAllUI();
+        syncSidebarControlsOnly();
+        markMainParamsDirty();
         const rDesc = state.userStageRatios.slice(0, state.stages).map((v, i) => `i${i+1}=${Number(v).toFixed(2)}`).join(' × ');
-        showToast(`总传动比 i_total=${state.ratio} 保持不变，已互算各级速比：${rDesc}`);
+        showToast(`总传动比 i_total=${state.ratio} 保持不变，已互算各级速比：${rDesc}（点击【计算】刷新预览）`);
       });
 
       // Custom Stage Center Distances (Supports both checking & unchecking cleanly!)
@@ -23672,7 +25249,8 @@ Call main()
             });
           }
         }
-        updateAllUI();
+        syncSidebarControlsOnly();
+        markMainParamsDirty();
       });
 
       ['stageCenter1', 'stageCenter2', 'stageCenter3'].forEach((id, idx) => {
@@ -23698,7 +25276,8 @@ Call main()
               mCfg.autoShift = true;
             }
           }
-          updateAllUI();
+          syncSidebarControlsOnly();
+          markMainParamsDirty();
         });
       });
 
@@ -23711,8 +25290,9 @@ Call main()
             adaptStageTeethToLockedCenterAndRatio(k, state.userStageRatios[k]);
           }
         }
-        updateAllUI();
-        showToast('各级中心距已圆整至 GB/T 1356 标准数系');
+        syncSidebarControlsOnly();
+        markMainParamsDirty();
+        showToast('各级中心距已圆整至 GB/T 1356 标准数系（点击【计算】刷新预览）');
       });
 
       // Custom Stage Helix Angles (Supports both checking & unchecking cleanly!)
@@ -23724,7 +25304,8 @@ Call main()
             state.userStageBetas[k - 1] = Number(document.getElementById(`stageBeta${k}`).value) || 12;
           }
         }
-        updateAllUI();
+        syncSidebarControlsOnly();
+        markMainParamsDirty();
       });
 
       ['stageBeta1', 'stageBeta2', 'stageBeta3'].forEach((id, idx) => {
@@ -23741,7 +25322,8 @@ Call main()
             else if (isPlan) mCfg.subType = bVal === 0 ? 'plan_spur' : 'plan_helical';
             else if (!isWorm) mCfg.subType = bVal === 0 ? 'cyl_spur' : (mCfg.subType === 'cyl_double_helical' ? 'cyl_double_helical' : 'cyl_helical');
           }
-          updateAllUI();
+          syncSidebarControlsOnly();
+          markMainParamsDirty();
         });
       });
 
@@ -23761,7 +25343,8 @@ Call main()
               state.gearMicroCustom.forEach(c => { c.enabled = false; });
             }
           }
-          updateAllUI();
+          syncSidebarControlsOnly();
+          markMainParamsDirty();
         });
       }
 
@@ -23777,7 +25360,8 @@ Call main()
               state.gearMicroCustom[idx].mn = val;
               adaptStageTeethToLockedCenterAndRatio(idx, state.userStageRatios[idx]);
             }
-            updateAllUI();
+            syncSidebarControlsOnly();
+            markMainParamsDirty();
           });
         }
       });
@@ -23797,9 +25381,10 @@ Call main()
           }
         });
         document.getElementById('mountModeHint').innerHTML = state.customMount
-          ? '当前为 <span class="text-sky-400 font-medium">手动锁定安装尺寸模式</span>：您可以自由输入现场底座孔距、中心高及轴伸直径，系统自动校核干涉并更新箱体三维参数。'
+          ? '当前为 <span class="text-sky-400 font-medium">手动锁定安装尺寸模式</span>：您可以自由输入现场底座孔距、中心高及轴伸直径，完成后点击【计算】执行干涉校核。'
           : '当前为 <span class="text-emerald-400 font-medium">自动标准推算模式</span>：系统根据各级中心距与包络尺寸自动推算地脚孔距、中心高及轴伸尺寸。';
-        updateAllUI();
+        syncSidebarControlsOnly();
+        markMainParamsDirty();
       });
 
       ['selectInputShaftType', 'selectOutputShaftType'].forEach(id => {
@@ -23808,11 +25393,11 @@ Call main()
           el.addEventListener('change', (e) => {
             if (id === 'selectInputShaftType') state.inputShaftType = e.target.value;
             else state.outputShaftType = e.target.value;
-            // Sync schematic shaft selector to show the modified shaft immediately
             state.schematicShaftIdx = (id === 'selectInputShaftType') ? 0 : (state.design ? state.design.shafts.length - 1 : 1);
-            updateAllUI();
+            syncSidebarControlsOnly();
+            markMainParamsDirty();
             const labelMap = { solid_key: '普通实心平键轴', hollow_key: '空心轴(内键槽/通孔)', spline: '渐开线花键轴(GB/T 3478)' };
-            showToast(`已切换${id === 'selectInputShaftType' ? '输入轴' : '输出轴'}类型为：${labelMap[e.target.value] || e.target.value}`);
+            showToast(`已设置${id === 'selectInputShaftType' ? '输入轴' : '输出轴'}类型：${labelMap[e.target.value] || e.target.value}（点击【计算】更新预览）`);
           });
         }
       });
@@ -23826,7 +25411,8 @@ Call main()
           state.userMount.boltSpec = Number(document.getElementById('mountBoltSpec').value) || 20;
           state.userMount.d_in = Number(document.getElementById('mountDin').value) || 30;
           state.userMount.d_out = Number(document.getElementById('mountDout').value) || 60;
-          updateAllUI();
+          syncSidebarControlsOnly();
+          markMainParamsDirty();
         });
       });
 
@@ -23880,8 +25466,10 @@ Call main()
         }
 
         if (!d.shaftInterferences || d.shaftInterferences.length === 0) {
-          updateAllUI();
-          showToast('当前各级传动轴与齿轮净空均已合格，已同步修正安装尺寸！');
+          state.mainParamsDirty = false;
+          state.mainInterferenceBlocked = false;
+          updateAllUI({ skipInterferenceModal: true });
+          showToast('当前各级传动轴与齿轮净空均已合格，已同步修正安装尺寸并刷新预览！');
           return;
         }
 
@@ -23905,7 +25493,9 @@ Call main()
           }
           state.ratio = Number(totalRatio.toFixed(2));
           document.getElementById('inputRatio').value = state.ratio;
-          updateAllUI();
+          state.mainParamsDirty = false;
+          state.mainInterferenceBlocked = false;
+          updateAllUI({ skipInterferenceModal: true });
         };
 
         // =====================================================================
@@ -24061,8 +25651,9 @@ Call main()
       if (selectGearLayout) {
         selectGearLayout.addEventListener('change', (e) => {
           state.gearLayout = e.target.value;
-          updateAllUI();
-          showToast('已切换齿轮轴向排列方式，并同步更新箱体宽度与3D/2D视图');
+          syncSidebarControlsOnly();
+          markMainParamsDirty();
+          showToast('已设置齿轮轴向排列方式，请点击【计算】执行干涉检测与刷新视图');
         });
       }
 
@@ -24168,17 +25759,13 @@ Call main()
               }
               return;
             }
-          } catch (error) {
-            const message = error && error.message ? error.message : String(error);
-            showToast(`无法打开保存目录选择框：${message}`);
-            return;
-          }
+          } catch (e) {}
 
           // 2. In browser environment: allow entering a custom local path OR using runtime Windows Folder Picker
           const folderName = state.design ? state.design.gearboxFolderName : '减速机文件夹';
           state.swSaveDirMode = 'custom';
           if (!state.swCustomSaveDir) {
-            state.swCustomSaveDir = 'D:\\SolidWorks_Models';
+            state.swCustomSaveDir = 'D:\SolidWorks_Models';
           }
           const selModeEl = document.getElementById('selectSWSaveDirMode');
           if (selModeEl) selModeEl.value = 'custom';
@@ -24324,7 +25911,8 @@ Call main()
       if (toggleCustomHelixHands) {
         toggleCustomHelixHands.addEventListener('change', () => {
           state.customHelixHands = toggleCustomHelixHands.checked;
-          updateAllUI();
+          syncSidebarControlsOnly();
+          markMainParamsDirty();
         });
       }
       ['stageHand1', 'stageHand2', 'stageHand3'].forEach((id, idx) => {
@@ -24334,8 +25922,9 @@ Call main()
             state.customHelixHands = true;
             if (toggleCustomHelixHands) toggleCustomHelixHands.checked = true;
             state.userPinionHands[idx] = e.target.value;
-            updateAllUI();
-            showToast(`已修改第${idx+1}级齿轮旋向，并实时更新同轴轴向力抵消与3D齿向`);
+            syncSidebarControlsOnly();
+            markMainParamsDirty();
+            showToast(`已设置第${idx+1}级齿轮旋向，点击【计算】更新轴向力与3D齿向`);
           });
         }
       });
@@ -24345,8 +25934,9 @@ Call main()
           state.customHelixHands = false;
           if (toggleCustomHelixHands) toggleCustomHelixHands.checked = false;
           state.userPinionHands = ['LH', 'RH', 'LH'];
-          updateAllUI();
-          showToast('已自动配置同轴斜齿轮旋向：中间轴两齿轮同旋向，轴向力反向相抵消！');
+          syncSidebarControlsOnly();
+          markMainParamsDirty();
+          showToast('已设为同轴反向抵消旋向，点击【计算】刷新预览');
         });
       }
 
@@ -24413,7 +26003,7 @@ Call main()
           const mCfg = state.gearMicroCustom[state.activeMicroStageIdx];
           if (mCfg) {
             mCfg.enabled = e.target.checked;
-            updateAllUI();
+            markGearParamsDirty();
           }
         });
       }
@@ -24435,7 +26025,9 @@ Call main()
               state.gearMicroCustom[sIdx].autoShift = true;
             }
           }
-          updateAllUI();
+          state.gearReportVisible = false;
+          state.gearParamsDirty = true;
+          updateAllUI({ skipInterferenceModal: true });
         });
       }
 
@@ -24468,7 +26060,9 @@ Call main()
           } else if (sub === 'plan_helical') {
             if (state.userStageBetas[sIdx] === 0) state.userStageBetas[sIdx] = 10;
           }
-          updateAllUI();
+          state.gearReportVisible = false;
+          state.gearParamsDirty = true;
+          updateAllUI({ skipInterferenceModal: true });
         });
       }
 
@@ -24655,7 +26249,7 @@ Call main()
           }
         }
         mCfg.accuracyGrade = Number(document.getElementById('microAccuracyGrade').value) || 6;
-        updateAllUI();
+        markGearParamsDirty();
       };
 
       ['microMn', 'dispMicroA0Input', 'microAlphaN', 'microCenterA', 'microZ1', 'microZ2', 'microBeta', 'microB1', 'microB2', 'microXn1', 'microXn2', 'microK1', 'microK2', 'microAccuracyGrade'].forEach(id => {
@@ -24771,7 +26365,9 @@ Call main()
               state.userStageBetas[sIdx] = 12;
             }
           }
-          updateAllUI();
+          state.gearReportVisible = false;
+          state.gearParamsDirty = true;
+          updateAllUI({ skipInterferenceModal: true });
         });
       }
 
@@ -24797,7 +26393,9 @@ Call main()
             if (chkLockDe2Input) chkLockDe2Input.checked = true;
             showToast('已切换为输入外侧分度圆直径 de2：模数框已锁定并由软件自动计算');
           }
-          updateAllUI();
+          state.gearReportVisible = false;
+          state.gearParamsDirty = true;
+          updateAllUI({ skipInterferenceModal: true });
         });
       }
       if (chkLockDe2Input) {
@@ -24819,7 +26417,9 @@ Call main()
             if (chkLockModuleInput) chkLockModuleInput.checked = true;
             showToast('已切换为输入模数：外侧分度圆直径 de2 已锁定并由软件自动计算');
           }
-          updateAllUI();
+          state.gearReportVisible = false;
+          state.gearParamsDirty = true;
+          updateAllUI({ skipInterferenceModal: true });
         });
       }
 
@@ -24913,7 +26513,9 @@ Call main()
           if (state.gearMicroCustom[sIdx]) {
             state.gearMicroCustom[sIdx].autoShift = true;
           }
-          updateAllUI();
+          state.gearReportVisible = false;
+          state.gearParamsDirty = true;
+          updateAllUI({ skipInterferenceModal: true });
           const selText = selectShiftSizingRule.options[selectShiftSizingRule.selectedIndex]
             ? selectShiftSizingRule.options[selectShiftSizingRule.selectedIndex].text
             : state.shiftSizingRule;
@@ -24926,7 +26528,9 @@ Call main()
       if (selectCalcStandard) {
         selectCalcStandard.addEventListener('change', (e) => {
           state.calcStandard = e.target.value || 'GB';
-          updateAllUI();
+          state.gearReportVisible = false;
+          state.gearParamsDirty = true;
+          updateAllUI({ skipInterferenceModal: true });
           showToast(state.calcStandard === 'ISO'
             ? '已切换为：国际标准体系 (ISO 6336 / ISO 23509 / ISO 10300 / DIN 3992)'
             : '已切换为：中国国家标准体系 (GB/T 3480 / GB/T 10062 / GB/T 1356)');
@@ -25638,16 +27242,122 @@ Call main()
             if (arrEl) state.brgArrangement = arrEl.value || 'DF_X';
             state.brgFp = Number(document.getElementById('inputBrgFp').value) || 1.20;
             state.brgReliability = Number(document.getElementById('selectBrgReliability').value) || 1.00;
-            updateAllUI();
+            markBearingParamsDirty();
           });
         }
       });
+
+      const runBearingLifeCalculation = () => {
+        state.brgTargetLife = Math.max(500, Number(document.getElementById('inputBrgTargetLife').value) || 15000);
+        state.brgSeries = document.getElementById('selectBrgSeries').value || '302';
+        const arrEl = document.getElementById('selectBrgArrangement');
+        if (arrEl) state.brgArrangement = arrEl.value || 'DF_X';
+        state.brgFp = Number(document.getElementById('inputBrgFp').value) || 1.20;
+        state.brgReliability = Number(document.getElementById('selectBrgReliability').value) || 1.00;
+        state.bearingParamsDirty = false;
+        updateAllUI({ skipInterferenceModal: true });
+        const failedCnt = (state.design && state.design.shafts)
+          ? state.design.shafts.filter(sh => sh.bearingLife && !sh.bearingLife.isPass).length
+          : 0;
+        if (failedCnt > 0) {
+          showToast(`轴承寿命校核完成：检测到 ${failedCnt} 根轴寿命低于目标值，已自动生成推荐解决方案！`);
+        } else {
+          showToast('✓ 轴承寿命校核完成：全轴系滚动轴承额定寿命均满足设计要求！');
+        }
+      };
+
+      const btnCalcBearingLife = document.getElementById('btnCalcBearingLife');
+      if (btnCalcBearingLife) {
+        btnCalcBearingLife.addEventListener('click', runBearingLifeCalculation);
+      }
+      const btnCalcBearingLifeInline = document.getElementById('btnCalcBearingLifeInline');
+      if (btnCalcBearingLifeInline) {
+        btnCalcBearingLifeInline.addEventListener('click', runBearingLifeCalculation);
+      }
+
+      // Modules 1-4 Calculate Button & Gear Parameter Module Calculate Button
+      const btnRunMainCalc = document.getElementById('btnRunMainCalc');
+      if (btnRunMainCalc) {
+        btnRunMainCalc.addEventListener('click', () => {
+          runMainCalculationWithInterferenceGate();
+        });
+      }
+      const btnToggleParamPanel = document.getElementById('btnToggleParamPanel');
+      const paramModulesGrid = document.getElementById('paramModulesGrid');
+      if (btnToggleParamPanel && paramModulesGrid) {
+        btnToggleParamPanel.addEventListener('click', () => {
+          const isHidden = paramModulesGrid.classList.toggle('hidden');
+          btnToggleParamPanel.textContent = isHidden ? '展开参数区' : '收起参数区';
+        });
+      }
+
+      const btnCalcGearModule = document.getElementById('btnCalcGearModule');
+      if (btnCalcGearModule) {
+        btnCalcGearModule.addEventListener('click', () => {
+          state.gearReportVisible = true;
+          state.gearParamsDirty = false;
+          updateAllUI({ skipInterferenceModal: true });
+          const repEl = document.getElementById('calcReportPreviewContainer');
+          if (repEl) repEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          showToast('✓ 齿轮参数计算完成，已显示完整计算报告！');
+        });
+      }
+
+      // Multi-Scheme Smart Tooth-Matching Candidate Table Listeners
+      const selectToothCandSort = document.getElementById('selectToothCandSort');
+      if (selectToothCandSort) {
+        selectToothCandSort.addEventListener('change', (e) => {
+          state.toothCandSortMode = e.target.value || 'comprehensive';
+          if (state.design) renderToothCandidatesTable(state.design);
+        });
+      }
+      const btnRefreshToothCandidates = document.getElementById('btnRefreshToothCandidates');
+      if (btnRefreshToothCandidates) {
+        btnRefreshToothCandidates.addEventListener('click', () => {
+          const dNow = calculateGearboxDesign();
+          renderToothCandidatesTable(dNow);
+          showToast('已按当前中心距与目标速比重新枚举并排序多方案配齿候选表！');
+        });
+      }
+      const toothCandTbody = document.getElementById('toothCandidatesTableBody');
+      if (toothCandTbody) {
+        toothCandTbody.addEventListener('click', (e) => {
+          const btn = e.target.closest('[data-apply-tooth-cand]');
+          if (!btn) return;
+          const idx = Number(btn.getAttribute('data-apply-tooth-cand'));
+          const cand = state.lastToothCandidates && state.lastToothCandidates[idx];
+          if (!cand) return;
+          const sIdx = cand.stageIdx;
+          const mCfg = state.gearMicroCustom[sIdx];
+          if (!mCfg) return;
+          mCfg.enabled = true;
+          mCfg.autoShift = true;
+          mCfg.customSpanK = false;
+          mCfg.mn = cand.mn;
+          mCfg.z1 = cand.z1;
+          mCfg.z2 = cand.z2;
+          if (cand.qWorm) mCfg.qWorm = cand.qWorm;
+          if (cand.isBevel) {
+            mCfg.bevelInputTarget = 'de2';
+            mCfg.priorityMode = 'lock_a_solve_x';
+            mCfg.mmn_input = undefined;
+          } else {
+            mCfg.priorityMode = 'lock_a_solve_x';
+          }
+          state.userStageModules[sIdx] = cand.mn;
+          state.gearReportVisible = true;
+          state.gearParamsDirty = false;
+          updateAllUI({ skipInterferenceModal: true });
+          showToast(`✓ 已一键选用第${sIdx + 1}级配齿方案：m=${cand.mn}mm, z₁=${cand.z1}, z₂=${cand.z2} (SH=${cand.SH}, SFmin=${cand.SFmin}, εγ=${cand.epsGamma})`);
+        });
+      }
 
       document.getElementById('btnUpgradeBearingsSeries').addEventListener('click', () => {
         state.brgSeries = '322';
         state.shaftBrgOverrides = [null, null, null, null];
         document.getElementById('selectBrgSeries').value = '322';
-        updateAllUI();
+        state.bearingParamsDirty = false;
+        updateAllUI({ skipInterferenceModal: true });
         showToast('已将全轴系升级为 322 加宽重载圆锥滚子轴承系列，并同步更新箱体轴承座孔径');
       });
 
@@ -25662,16 +27372,16 @@ Call main()
             cur.series = serSel.value;
             state.shaftBrgOverrides[sIdx] = cur;
             state.brgSchematicShaftIdx = sIdx;
-            updateAllUI();
-            showToast(`已将第${sIdx+1}轴轴承单独切换为 ${cur.series} 系列`);
+            markBearingParamsDirty();
+            showToast(`已调整第${sIdx+1}轴轴承系列为 ${cur.series}，点击【计算轴承寿命】执行校核`);
           } else if (bstSel) {
             const sIdx = Number(bstSel.getAttribute('data-shaft-brg-boost'));
             const cur = state.shaftBrgOverrides[sIdx] || { series: state.brgSeries, boreBoost: 0 };
             cur.boreBoost = Number(bstSel.value) || 0;
             state.shaftBrgOverrides[sIdx] = cur;
             state.brgSchematicShaftIdx = sIdx;
-            updateAllUI();
-            showToast(`已调整第${sIdx+1}轴轴承内径档位 (+${cur.boreBoost}档)`);
+            markBearingParamsDirty();
+            showToast(`已调整第${sIdx+1}轴轴承内径档位 (+${cur.boreBoost}档)，点击【计算轴承寿命】执行校核`);
           }
         });
       }
@@ -25684,6 +27394,7 @@ Call main()
           const cmd = btn.getAttribute('data-brg-remedy');
           const sIdx = Number(btn.getAttribute('data-shaft-idx')) || 0;
 
+          state.bearingParamsDirty = false;
           if (cmd === 'series_322' || cmd === 'series_222') {
             const ser = cmd === 'series_322' ? '322' : '222';
             state.brgSeries = ser;
@@ -26034,7 +27745,7 @@ Call main()
           setVal('inputKA', Number(state.ka || 1.25).toFixed(2));
           setVal('inputMaterial', state.material);
           setVal('inputHelixAngle', state.beta);
-          setVal('inputHousingMaterial', state.housingMaterial);
+          setVal('selectHousingMaterial', state.housingMaterial);
           setVal('selectPlanetCount', state.planetCount);
           setVal('selectGearLayout', state.gearLayout);
           setVal('selectInputShaftType', state.inputShaftType);
@@ -26069,7 +27780,7 @@ Call main()
     <div class="gb-desktop-modal-card p-6 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
         <div>
-          <h2 id="gbHelpModalTitle" class="text-base font-bold">GearBox Pro 使用流程与帮助文档 (V5.0.7)</h2>
+          <h2 id="gbHelpModalTitle" class="text-base font-bold">GearBox Pro 使用流程与帮助文档 (V5.0.8)</h2>
           <p class="text-xs text-slate-500 mt-0.5">减速机参数化设计、工程保存与 SolidWorks / AutoCAD Mechanical 自动建模指南</p>
         </div>
         <button id="btnCloseHelpModal" type="button" class="px-2.5 py-1 rounded border border-slate-300 text-xs font-medium hover:bg-slate-100">关闭</button>
@@ -26093,8 +27804,8 @@ Call main()
           2) <strong>AutoCAD Mechanical 2D</strong>：确保已启动 AutoCAD Mechanical 并安装 Python（含 pywinauto、pywin32），在 2D 零件图页签点击「一键调用 CAD 轴生成器绘图」即可自动绘制 GB 标准零件图。</p>
         </div>
         <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
-          <div class="font-bold text-sky-700 mb-1">第五步：常用视图、快捷键与在线更新</div>
-          <p>菜单栏「视图」支持重新加载页面 (Ctrl+R)、放大 (Ctrl+=)、缩小 (Ctrl+-)、重置缩放 (Ctrl+0)、全屏切换 (F11) 以及浅色/深色工程界面切换；联网时可通过「帮助 → 检查软件更新...」在线升级。</p>
+          <div class="font-bold text-sky-700 mb-1">第五步：常用视图与快捷键</div>
+          <p>菜单栏「视图」支持重新加载页面 (Ctrl+R)、放大 (Ctrl+=)、缩小 (Ctrl+-)、重置缩放 (Ctrl+0)、全屏切换 (F11) 以及浅色/深色工程界面切换。</p>
         </div>
       </div>
     </div>
@@ -26104,7 +27815,7 @@ Call main()
   <div id="gbLicenseModal" class="gb-desktop-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="gbLicenseModalTitle">
     <div class="gb-desktop-modal-card p-6 space-y-4" style="max-width: 560px;">
       <div class="border-b border-slate-200 pb-3">
-        <h2 id="gbLicenseModalTitle" class="text-base font-bold">软件授权激活 · GearBox Pro V5.0.7</h2>
+        <h2 id="gbLicenseModalTitle" class="text-base font-bold">软件授权激活 · GearBox Pro V5.0.8</h2>
         <p id="gbLicenseModalSubtitle" class="text-xs text-slate-500 mt-1">首次使用或授权到期时需完成离线验签激活。授权成功后将不再弹窗显示授权信息，直至授权到期。</p>
       </div>
 

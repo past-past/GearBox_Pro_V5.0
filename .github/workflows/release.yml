@@ -1,9 +1,8 @@
-name: Build & Release Windows Desktop App (V5.0)
+name: Build & Release Windows Desktop App
 
 on:
   push:
     tags:
-      - 'V5.0'
       - 'V*'
       - 'v*'
   workflow_dispatch:

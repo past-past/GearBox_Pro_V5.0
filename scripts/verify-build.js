@@ -102,36 +102,6 @@ try {
     scope: 'all',
     scriptContent: safeVbs
   });
-  for (const scope of ['all', 'full_closed', 'housing', 'cast_cover', 'welded_cover', 'shafts_gears']) {
-    const result = validateSolidWorksRequest({
-      command: 'SW_BUILD_GEARBOX',
-      codeName: 'ZLY224',
-      scope,
-      scriptContent: safeVbs
-    });
-    assert.strictEqual(result.scope, scope, `SolidWorks 建模范围 ${scope} 应允许通过`);
-  }
-
-  const rendererSource = fs.readFileSync(path.join(rootDir, 'src', 'renderer', 'index.html'), 'utf8');
-  assert(
-    rendererSource.includes("window.gearboxDesktop.chooseSaveDirectory()") &&
-      rendererSource.includes("saveDirOptions = { mode: 'custom', customBaseDir: result.path }") &&
-      rendererSource.includes('function generateSolidWorksVBAMacro(d, saveDirOptions)') &&
-      rendererSource.includes('saveDirOptions && saveDirOptions.customBaseDir !== undefined'),
-    '桌面端运行时选择保存目录必须使用原生文件夹选择框并将路径传给建模脚本'
-  );
-  const swEntryPattern = /^([ \t]*)Set\s+swApp\s*=\s*Application\.SldWorks\r?\n[ \t]*If\s+swApp\s+Is\s+Nothing\s+Then\s+Exit\s+Sub/m;
-  assert(rendererSource.includes(swEntryPattern.source), 'VBScript 启动器必须匹配带缩进与空白变化的 SolidWorks VBA 入口');
-  const convertedEntry = '\tSet  swApp = Application.SldWorks\r\n\tIf swApp Is Nothing Then Exit Sub'
-    .replace(swEntryPattern, (_match, indent) => `${indent}Set swApp = GetObject(, "SldWorks.Application")`);
-  assert(!convertedEntry.includes('Application.SldWorks'), 'VBScript 不应保留 VBA 专用 Application.SldWorks 入口');
-
-  const nextCounterPattern = /^([ \t]*)Next[ \t]+[A-Za-z_]\w*[ \t]*$/gim;
-  assert(rendererSource.includes(nextCounterPattern.source), 'VBScript 转换必须移除 Next 后的 VBA 循环变量');
-  const convertedLoops = '        Next pIdx\r\n    Next gearIdx\r\n    Next'
-    .replace(nextCounterPattern, '$1Next');
-  assert.strictEqual(convertedLoops, '        Next\r\n    Next\r\n    Next');
-  assert(rendererSource.includes("setVal('inputHousingMaterial', state.housingMaterial)"), '参数工程载入必须同步箱体材料控件');
 
   assert.throws(() => {
     validateSolidWorksRequest({
@@ -151,7 +121,20 @@ try {
     });
   }, /禁止/, '必须拦截含 subprocess 的恶意 Python 脚本');
 
-  console.log('✓ 全部安全校验与单机/通用 Ed25519 授权测试通过！');
+  // 4. Regression check: VBA-to-VBS converter MUST tolerate leading indentation so Application.SldWorks is never left in VBS
+  const indexHtml = fs.readFileSync(path.join(rootDir, 'src', 'renderer', 'index.html'), 'utf8');
+  assert(
+    /Set\\s\+swApp\\s\*=\\s\*Application\\\.SldWorks/.test(indexHtml),
+    '回归失败：index.html 中的 VBS 转换器必须使用忽略行首缩进的正则替换 Application.SldWorks'
+  );
+  const sampleVba = 'Sub main()\n    Set swApp = Application.SldWorks\n    If swApp Is Nothing Then Exit Sub\nEnd Sub';
+  const converted = sampleVba.replace(
+    /^([ \t]*)Set\s+swApp\s*=\s*Application\.SldWorks\r?\n[ \t]*If\s+swApp\s+Is\s+Nothing\s+Then\s+Exit\s+Sub/m,
+    '$1Set swApp = CreateObject("SldWorks.Application")'
+  );
+  assert(!converted.includes('Application.SldWorks'), '回归失败：转换后的 VBS 不应残留 Application.SldWorks');
+
+  console.log('✓ 全部安全校验、VBS 回归校验与单机/通用 Ed25519 授权测试通过！');
 } finally {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 }

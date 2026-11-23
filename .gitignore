@@ -7,7 +7,7 @@ out/
 src/renderer/vendor/three.min.js
 src/renderer/vendor/tailwind.css
 
-# CRITICAL SECURITY: Never commit license private keys, server secrets, or audit logs!
+# CRITICAL SECURITY: Never commit license private keys, admin token scripts/files, or audit logs!
 license-server/keys/private.pem
 license-server/keys/*.key
 license-server/.env

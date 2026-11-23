@@ -1,6 +1,6 @@
 {
   "name": "gearbox-pro-desktop",
-  "version": "5.0.7",
+  "version": "5.0.8",
   "description": "GearBox Pro减速机参数化设计及建模系统 Windows 桌面端 (Electron)",
   "main": "src/main/main.js",
   "author": "GearBox Pro Engineering Team",
@@ -53,11 +53,15 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },

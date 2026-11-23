@@ -32,7 +32,7 @@
     const codeName = (raw.design && raw.design.codeName) ? String(raw.design.codeName) : 'GearBox_V5';
     return {
       format: 'GearBoxProProject',
-      schemaVersion: '5.0.6',
+      schemaVersion: '5.0.8',
       appName: 'GearBox Pro减速机参数化设计及建模系统',
       savedAt: new Date().toISOString(),
       codeName,
