@@ -1,177 +1,117 @@
-# GearBox Pro减速机参数化设计及建模系统 (Windows 桌面端 V5.0.8)
+# GearBox Pro 减速机参数化设计及建模系统
 
-本项目将 **GearBox Pro V5.0** 网页端封装为可离线部署在 Windows 10/11 (x64) 系统的 Electron 桌面应用程序，集成参数工程存取、本地化离线资源、受控安全主进程 SolidWorks / AutoCAD Mechanical 自动建模、Ed25519 非对称离线授权验签，以及 GitHub Actions 自动化打包与 `V5.0.8` 发布流程。
+GearBox Pro 是面向减速机设计与制图工作的 Windows 桌面软件。您可以在软件中设置传动方案和设计参数、查看三维预览与校核结果、保存参数工程，并按需调用 SolidWorks 生成三维模型，或调用 AutoCAD Mechanical 绘制二维零件图。
 
----
+> **适用系统：** Windows 10/11 64 位
+> **当前版本：** V5.0.7
 
-## 一、核心功能与安全架构
+## 主要功能
 
-1. **参数工程文件保存与打开 (`.gbpro`)**
-   - 支持通过顶部「保存参数 / 打开参数」按钮或菜单「文件 → 保存 / 另存为 / 打开 (`Ctrl+S` / `Ctrl+Shift+S` / `Ctrl+O`)」，自由选择路径与文件名保存当前全部减速机参数配置，随时重新载入复现。
-2. **原生视图控制与帮助文档**
-   - 菜单栏「视图」提供：重新加载 (`Ctrl+R`)、强制重新加载 (`Ctrl+Shift+R`)、放大 (`Ctrl+=`)、缩小 (`Ctrl+-`)、重置缩放 (`Ctrl+0`)、全屏 (`F11`) 及浅色/深色工程界面切换 (`Ctrl+Shift+T`)。
-   - 内置「帮助文档 (`F1`)」完整介绍参数设置、工程存取与 SolidWorks / AutoCAD Mechanical 建模流程。
-3. **100% 本地化离线资源**
-   - 移除所有外部 CDN（Tailwind CSS、Three.js、Google Fonts），通过 `scripts/prepare-assets.js` 在构建阶段自动将 `three@0.128.0` 与 `tailwindcss@3.4.17` 本地编译打包进 `src/renderer/vendor/`，支持完全离线运行且界面零错位。
-   - 优化浅色工业界面（`theme-industrial-light`）的三维视口背景（`#cfdbe8`）、半透明箱盖（深钴蓝 `0x0369a1`）与轴段金属对比度，以及彩色/渐变按钮文字可读性。
-4. **受控 Electron 主进程建模架构（告别 HTA / ActiveX / 本机 HTTP 脚本服务）**
-   - 渲染进程强制开启 `contextIsolation: true`、`nodeIntegration: false`、`sandbox: true`、`webSecurity: true`。
-   - 仅通过 `src/main/preload.js` 暴露受限的 `window.gearboxDesktop` IPC 方法；主进程逐次校验 `event.senderFrame.url` 必须为本应用本地 `index.html`，并对建模命令白名单、建模范围参数与脚本文本执行严格安全审计（拦截 `WScript.Shell`、PowerShell、网络请求、`subprocess`、`eval` 等危险原语），仅通过 `child_process.execFile`（无 Shell）调用本机 `cscript.exe`（SolidWorks COM）与 `python`（AutoCAD Mechanical）。
-5. **非对称加密授权机制（服务端私钥签发 · 客户端离线公钥验签）**
-   - 算法：Node.js 原生 **Ed25519** 椭圆曲线数字签名。
-   - **客户端仅内置公钥**（`src/main/license/public.pem`），用于离线校验授权签名、机器码绑定与到期日期；公钥无法伪造或签发任何新授权。
-   - **无打扰体验**：授权信息**不会常驻显示在软件主界面**；仅在首次启动未授权或授权到期/失效时弹出激活窗口，激活成功后自动隐藏且不再弹窗，直至授权到期。
+- **传动方案与参数设计：** 从常用减速机方案预设开始，也可以按项目需要调整工况、齿轮几何、材料、轴承及箱体等参数。
+- **标准化轴系选型：** 默认采用 GB/T 计算体系，并按 GB/T 标准系列推荐平键与骨架油封尺寸，在设计结果中展示对应规格。
+- **设计预览与校核：** 查看设计模型和相关计算结果，辅助检查齿轮强度、轴承寿命及轴系布置。
+- **SolidWorks 三维建模：** 选择整机开式总成、整机合箱总成、下箱座与轴承座、铸件箱盖、焊接件箱盖或齿轮与轴系等建模范围，生成相应的零件或装配体。
+- **AutoCAD Mechanical 二维出图：** 根据当前设计生成减速机轴、齿轮等零件的二维工程图。
+- **参数工程保存与恢复：** 将设计参数保存为 `.gbpro` 文件，之后可以重新打开继续设计。
+- **浅色与深色界面：** 可根据使用环境切换界面主题，并调整视图缩放或全屏显示。
+- **离线授权：** 完成激活后可离线使用；授权信息仅在需要激活或授权失效时提示。
 
----
+## 下载与安装
 
-## 二、目录结构说明
+前往 [GitHub Releases](https://github.com/past-past/GearBox_Pro_V5.0/releases/latest) 下载最新版本。
 
-```text
-GearBox-Pro-Desktop/
-├── .github/workflows/release.yml   # GitHub Actions 自动构建 Windows 安装包与 V5.0 Release
-├── build/
-│   ├── icon.ico                    # Windows 多分辨率齿轮主题图标
-│   └── icon.png                    # 512×512 高清齿轮图标
-├── scripts/
-│   ├── prepare-assets.js           # 构建前本地化 Three.js 与 Tailwind CSS
-│   └── verify-build.js             # 构建前离线授权验签与安全策略自动化测试
-├── src/
-│   ├── main/
-│   │   ├── main.js                 # Electron 主进程（安全窗口、中文菜单、IPC 校验）
-│   │   ├── preload.js              # 最小权限 contextBridge 桥接
-│   │   ├── cad-service.js          # 受控 SolidWorks / AutoCAD Mechanical 执行模块
-│   │   └── license/
-│   │       ├── machine-id.js       # Windows 硬件指纹机器码生成器
-│   │       ├── license-manager.js  # 离线 Ed25519 公钥验签管理器
-│   │       └── public.pem          # 仅含公钥（安全随客户端打包）
-│   └── renderer/
-│       ├── index.html              # 主界面（零外链、浅色对比度增强）
-│       ├── desktop-bridge.js       # 工程存取、帮助弹窗、首次授权弹窗逻辑
-│       ├── styles/tailwind-input.css
-│       └── vendor/fonts.css        # 纯本地 Windows 工程字体栈
-└── license-server/                 # 【仅部署在管理员服务器，打包客户端时自动排除】
-    ├── keygen.js                   # 生成 Ed25519 私钥/公钥对
-    ├── issue-cli.js                # 命令行授权签发工具
-    ├── server.js                   # 零依赖 HTTP 管理签发服务器 + Web 控制台 + 审计日志
-    └── .env.example                # 环境变量配置示例
-```
+- **NSIS 安装版：** 运行安装程序，按提示完成安装；可创建桌面和开始菜单快捷方式。
+- **Portable 便携版：** 下载后可直接运行，无需安装。
 
----
+请从项目的 GitHub Releases 下载发行版，不要运行来源不明的安装包。
 
-## 三、打包与授权管理服务器配置（重要必读）
+## 首次启动与授权
 
-> **核心安全原则：私钥 (`private.pem`) 永远只保存在管理员受控的授权服务器中，绝不可上传至 GitHub 仓库，也绝不可打包进客户端安装包！**
+首次启动时，软件会显示授权激活窗口。请按以下步骤操作：
 
-### 第 1 步：安全保管并沿用授权密钥对
+1. 点击「复制机器码」，将本机机器码发送给软件管理员。
+2. 管理员提供与您授权方式对应的授权码或授权文件。
+3. 粘贴授权码并点击「验证并激活授权」，或选择「导入授权文件」完成激活。
+4. 激活成功后，软件会关闭授权窗口。授权到期或无效时，软件会再次提示。
 
-升级到 V5.0.8 时应继续使用原有授权密钥对：服务端的 `license-server/keys/private.pem` 必须与仓库中的 `license-server/keys/public.pem` 和 `src/main/license/public.pem` 匹配。不要用 5.0.8 压缩包里的公钥覆盖这两个文件，也不要运行 `node keygen.js --force`；更换密钥会使旧公钥签发的授权无法通过新版验签。私钥必须从管理员受控备份安全恢复到服务端，绝不可提交至 GitHub。
+### 通用授权码
 
-只有在明确计划轮换密钥时才运行 `node keygen.js --force`。轮换前应备份新旧密钥并安排客户重新激活；客户端公钥更新后，旧密钥签发的授权将不再有效。
+为方便使用，下方提供了通用授权码：
 
-### 第 2 步：部署授权管理服务器（推荐内网/HTTPS 反向代理）
+GBPRO1.eyJjdXN0b21lck5hbWUiOiLpgJrnlKjnlKjmiLciLCJlZGl0aW9uIjoiUHJvZmVzc2lvbmFsIiwiZXhwaXJlc0F0IjoiMjAyNy0wMS0wMSIsImlzc3VlZEF0IjoiMjAyNi0xMS0yMCIsImxpY2Vuc2VJZCI6IkxJQy1NV085SUEwNC0wREUwRUUiLCJtYWNoaW5lQ29kZSI6IkFOWSIsInByb2R1Y3QiOiJHZWFyQm94LVByby1EZXNrdG9wIn0.5jvyCgyiW003DSqlyj_5JbS3d-BX5sNHB-UPBSOjQB08H1seIYqoaHpt3gTR783EGnZi3BPa-PClBQiZSoOzCw
 
-`license-server/server.js` 为纯 Node.js 原生实现（需 Node.js >= 18，**无需安装任何 npm 依赖**）。
+请仅通过可信渠道接收和使用授权码，不要将未填写的模板误当作有效授权。
 
-1. 将整个 `license-server/` 目录（含 `keys/private.pem`）上传至您的管理服务器（如 Linux 云服务器或公司内网受控主机）。
-2. 设置高强度管理员令牌并启动服务（默认仅监听 `127.0.0.1:8090`）：
-   - **Linux (systemd / shell)**：
-     ```bash
-     export LICENSE_SERVER_HOST=127.0.0.1
-     export LICENSE_SERVER_PORT=8090
-     export LICENSE_ADMIN_TOKEN="请替换为至少24位高强度随机字符串"
-     node server.js
-     ```
-   - **Windows PowerShell**：
-     ```powershell
-     $env:LICENSE_SERVER_HOST="127.0.0.1"
-     $env:LICENSE_SERVER_PORT="8090"
-     $env:LICENSE_ADMIN_TOKEN="请替换为至少24位高强度随机字符串"
-     node server.js
-     ```
-3. **生产环境加固建议**：
-   - 使用 **Nginx / Caddy** 作为反向代理对外提供 **HTTPS (TLS 1.2+)**，禁止明文 HTTP 暴露管理员令牌。
-   - 在防火墙或 Nginx 层限制仅允许公司办公网 IP / VPN 访问管理控制台（`/` 与 `/api/licenses/issue`）。
-   - 保护私钥文件权限：`chmod 600 license-server/keys/private.pem`（Windows 下通过 NTFS ACL 仅允许运行服务的管理员账户读取）。
-   - 定期备份 `license-server/issued-audit.jsonl` 签发审计日志，用于追踪所有客户授权记录。
-   - 若怀疑私钥泄露，应按密钥轮换流程重新生成密钥对、更新两处客户端/服务端公钥并发布新版本；轮换会导致旧密钥签发的授权无法通过新版验签，需提前安排客户重新激活。
+## 基本使用流程
 
-### 第 3 步：为客户签发离线授权（两种方式）
+### 1. 设置设计参数
 
-客户首次打开软件后，在弹窗中复制本机机器码（例如 `GBP-1A2B-3C4D-5E6F-7A8B`）并连同单位名称发给管理员：
+打开软件后，选择适用的传动方案或预设，并根据设计要求填写工况、传动参数及相关部件参数。检查页面中的预览和计算结果；参数应由具备相应专业知识的人员确认。
 
-- **方式 A：通过 Web 签发管理台**
-  打开部署好的管理台地址（如 `https://license.your-domain.com/`），输入管理员令牌、客户机器码、客户名称与到期日期，点击「签发离线授权」，可直接复制 `GBPRO1.xxxx.yyyy` 授权码或下载 `.gbplic` 授权文件发给客户。
-- **方式 B：通过服务器命令行签发（支持单机绑定与通用授权）**
-  - 单机绑定授权：
-  ```bash
-  cd license-server
-  node issue-cli.js --machine GBP-1A2B-3C4D-5E6F-7A8B --customer "某某传动机械有限公司" --expires 2027-12-31 --out ./issued_customer.gbplic
+### 2. 保存参数工程
+
+点击顶部「保存参数」，选择保存位置并保存为 `.gbpro` 文件。之后可点击「打开参数」载入已有工程。也可以使用菜单「文件」中的保存、另存为和打开命令：
+
+- `Ctrl+S`：保存参数工程
+- `Ctrl+Shift+S`：另存为
+- `Ctrl+O`：打开参数工程
+
+建议在重要修改前另存一份工程文件。
+
+### 3. 生成 SolidWorks 三维模型（可选）
+
+在「SolidWorks 三维自动建模」区域选择建模范围和模型保存位置，然后点击「一键调用 SW 自动建模」。程序将调用本机 SolidWorks 自动生成所选零件或装配体。
+
+使用前请确认本机已正确安装并可启动 SolidWorks。模型生成时间会随建模范围和计算机性能而变化；生成后请在 SolidWorks 中检查模型、装配关系及保存结果。
+
+### 4. 生成 AutoCAD Mechanical 二维图纸（可选）
+
+在「CAD机械版 2D 零件图」区域选择所需零件或图纸选项，然后点击「一键调用 CAD 轴生成器绘图」。该功能需要本机安装并可运行 AutoCAD Mechanical，以及 Python 和相应依赖。
+
+完成后请在 AutoCAD Mechanical 中检查图纸内容、尺寸和标注，并按项目要求保存。
+
+## 运行条件
+
+- **操作系统：** Windows 10 或 Windows 11，64 位。
+- **参数设计与预览：** 安装桌面软件后即可使用。
+- **SolidWorks 自动建模：** 需要本机安装 SolidWorks（项目当前按 2018–2025 版本范围适配）。
+- **AutoCAD Mechanical 自动出图：** 需要本机安装 AutoCAD Mechanical（项目当前按 2018–2025 版本范围适配），并安装 Python 3.8 或更高版本及 `pywinauto`、`pywin32`：
+
+  ```powershell
+  py -m pip install pywinauto pywin32
   ```
-  - 通用授权码（不限机器码，仍受 Ed25519 私钥签名与到期日期约束）：
-  ```bash
-  cd license-server
-  node issue-cli.js --universal --customer "企业通用授权" --expires 2027-12-31 --out ./universal.gbplic
-  ```
-  （在 Web 签发管理台中，也可直接将「授权模式」切换为 **通用授权码** 一键签发。）
 
-客户在离线电脑上导入 `.gbplic` 文件或粘贴授权码即可完成本地公钥验签激活；**激活后完全离线使用，且不再弹窗显示授权信息直至授权到期**。
+CAD 软件自动化依赖本机安装、版本和系统配置。若调用失败，请先确认对应 CAD 软件可以正常启动。
 
----
+## 常用设置与更新
 
-## 四、GitHub 打包与 `V5.0` 发布流程
+- **帮助文档：** 点击「帮助」菜单中的「使用流程与帮助文档」，或按 `F1`。
+- **授权管理：** 在「帮助」菜单中打开「授权管理与机器码」。
+- **切换主题：** 在「视图」菜单中选择浅色或深色界面，也可按 `Ctrl+Shift+T`。
+- **缩放视图：** `Ctrl++` 放大，`Ctrl+-` 缩小，`Ctrl+0` 恢复默认缩放。
+- **全屏：** 按 `F11` 切换全屏。
+- **检查更新：** 安装版可从「帮助 → 检查软件更新...」检查更新。检查更新需要网络连接；便携版请前往 GitHub Releases 手动下载新版。
 
-本项目已内置 `.github/workflows/release.yml`，推送 `V5.0` 标签后将由 GitHub Actions 的 `windows-latest` 云端环境自动完成：安装依赖 → 本地化 Three.js & Tailwind CSS → 运行安全与授权校验测试 → 打包 Windows 安装程序（NSIS `.exe`）与绿色便携版（Portable `.exe`）→ 自动创建 GitHub Release 并上传产物。
+更新软件前请先保存当前参数工程。升级不会替您备份 `.gbpro` 文件，建议将工程文件保存在独立位置。
 
-### 发布步骤
+## 常见问题
 
-1. **创建 GitHub 仓库**：在 GitHub 新建一个私有或公开仓库（例如 `gearbox-pro-desktop`）。
-2. **解压并初始化代码**：将本压缩包解压到本地文件夹，先按第三节第 1 步在管理员环境生成正式密钥并同步 `src/main/license/public.pem`（确认 `git status` 中**没有** `private.pem`）。
-3. **提交并推送主分支**：
-   ```bash
-   git init
-   git add .
-   git commit -m "Release GearBox Pro Desktop V5.0"
-   git branch -M main
-   git remote add origin https://github.com/<你的用户名>/<你的仓库名>.git
-   git push -u origin main
-   ```
-4. **开启 GitHub Actions 写入权限**：在仓库页面进入 `Settings → Actions → General → Workflow permissions`，选择 **Read and write permissions** 并保存。
-5. **创建并推送 `V5.0` 标签触发自动打包发布**：
-   ```bash
-   git tag V5.0
-   git push origin V5.0
-   ```
-6. **下载发布成品**：在仓库顶部进入 `Actions` 查看构建进度（约 3–5 分钟），构建完成后在仓库右侧 **Releases → V5.0** 页面即可直接下载：
-   - `GearBoxPro-V5.0.0-Windows-x64-nsis.exe`（标准 Windows 安装包，含桌面快捷方式与开始菜单）
-   - `GearBoxPro-V5.0.0-Windows-x64-portable.exe`（免安装绿色单文件版）
-   - `SHA256SUMS.txt`（完整性校验哈希文件）
+**授权码无法激活怎么办？**
+
+确认授权码完整、未过期，并且授权类型适用于本机。单机授权需与当前机器码匹配；如问题仍未解决，请将机器码和提示信息提供给管理员。
+
+**SolidWorks 或 AutoCAD Mechanical 没有启动或调用失败怎么办？**
+
+确认所需 CAD 软件已安装并可正常运行；AutoCAD Mechanical 出图还需要正确安装 Python、`pywinauto` 和 `pywin32`。检查保存目录是否可写后再重试。
+
+**如何继续之前的设计？**
+
+点击顶部「打开参数」，选择之前保存的 `.gbpro` 文件。
+
+**联网或更新失败怎么办？**
+
+离线授权不要求持续联网。自动更新检查需要网络；网络不可用时，可稍后重试，或从 GitHub Releases 手动下载。
 
 ---
 
-## 五、本机运行环境要求
-
-- **操作系统**：Windows 10 (1809+) / Windows 11 64 位。
-- **SolidWorks 自动建模**：本机需安装 SolidWorks 2018–2025（COM 自动化接口）。
-- **AutoCAD Mechanical 2D 自动出图**：本机需安装 AutoCAD Mechanical（2018–2025）及 Python 3.8+（安装依赖 `pip install pywinauto pywin32`）。
----
-
-## 六、客户端自动更新说明 (`electron-updater`)
-
-本项目已集成离线友好的 `electron-updater` 自动更新能力（仅对 NSIS 安装版生效，离线用户断网启动时静默跳过，绝不弹窗打扰）：
-
-1. **如何发布新版本触发客户端自动更新**：
-   - 修改 `package.json` 中的 `"version"`（必须高于旧版本，例如从 `"5.0.0"` 改为 `"5.0.1"` 或 `"5.1.0"`）。
-   - 提交代码后打新标签并推送：
-     ```bash
-     git add package.json
-     git commit -m "Bump version to 5.0.1"
-     git push origin main
-     git tag V5.0.1
-     git push origin V5.0.1
-     ```
-   - GitHub Actions 会自动将仓库名写入 `app-update.yml`，并在 Release 中一并上传 `latest.yml`、`.blockmap` 增量包与新 `.exe` 安装包。
-2. **客户端更新体验**：
-   - 联网启动软件 6 秒后自动静默检查，或在菜单栏点击 **「帮助 → 检查软件更新...」** 手动检查。
-   - 发现新版本后弹窗确认，后台下载时在 Windows 任务栏图标上显示进度条，下载完成后一键重启覆盖安装（**保留原有离线授权与本地 `.gbpro` 参数文件**）。
-3. **注意事项**：
-   - 直接使用 GitHub Releases 自动更新时，仓库需为 **Public（公开）**；若使用 Private（私有）仓库，仍可通过手动下载 Release 安装包覆盖升级。
+本软件生成的模型、图纸和计算结果应由使用者结合适用标准、设计条件及工程实践进行复核。软件输出不替代专业审查。
